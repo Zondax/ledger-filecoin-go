@@ -93,14 +93,10 @@ func GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
 	return message, nil
 }
 
-func prepareChunks(bip44PathBytes []byte, context []byte, transaction []byte) ([][]byte, error) {
-	if len(context) > 255 {
-		return nil, fmt.Errorf("maximum supported context size is 255 bytes")
-	}
-
+func prepareChunks(bip44PathBytes []byte, transaction []byte) ([][]byte, error) {
 	var packetIndex = 0
-	// first chunk + number of chunk needed for context + transaction
-	var packetCount = 1 + int(math.Ceil(float64(len(transaction) + len(context))/float64(userMessageChunkSize)))
+	// first chunk + number of chunk needed for transaction
+	var packetCount = 1 + int(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
 
 	chunks := make([][]byte, packetCount)
 
@@ -108,18 +104,15 @@ func prepareChunks(bip44PathBytes []byte, context []byte, transaction []byte) ([
 	chunks[0] = bip44PathBytes
 	packetIndex++
 
-	var contextSizeByte = []byte{byte(len(context))}
-	var body = append(contextSizeByte, context...)
-	body = append(body, transaction...)
 
 	for packetIndex < packetCount {
 		var start = (packetIndex - 1) * userMessageChunkSize
 		var end =  (packetIndex * userMessageChunkSize) - 1
 
-		if end >= len(body) {
-			chunks[packetIndex] = body[start:]
+		if end >= len(transaction) {
+			chunks[packetIndex] = transaction[start:]
 		} else {
-			chunks[packetIndex] = body[start:end]
+			chunks[packetIndex] = transaction[start:end]
 		}
 		packetIndex++
 	}

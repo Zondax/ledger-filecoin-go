@@ -22,11 +22,11 @@ import (
 )
 
 const (
-	CLA = 0x05
+	CLA = 0x06
 
 	INSGetVersion     = 0
-	INSGetAddrEd25519 = 1
-	INSSignEd25519    = 2
+	INSGetAddrSECP256K1 = 1
+	INSSignSECP256K1    = 2
 )
 
 const (
@@ -35,14 +35,16 @@ const (
 	PayloadChunkLast = 2
 )
 
+const HardenCount int = 2
+
 // LedgerFilecoin represents a connection to the Ledger app
 type LedgerFilecoin struct {
 	api     *ledger_go.Ledger
 	version VersionInfo
 }
 
-// Displays existing Ledger Oasis apps by address
-func ListOasisDevices(path []uint32) {
+// Displays existing Ledger Filecoin apps by address
+func ListFilecoinDevices(path []uint32) {
 	for i := uint(0); i < ledger_go.CountLedgerDevices(); i += 1 {
 		ledgerDevice, err := ledger_go.GetLedger(i)
 		if err != nil {
@@ -58,19 +60,19 @@ func ListOasisDevices(path []uint32) {
 			continue
 		}
 
-		_, address, err := app.GetAddressPubKeyEd25519(path)
+		_, address, err := app.GetAddressPubKeySECP256K1(path)
 		if err != nil {
 			continue
 		}
 
 		fmt.Printf("============ Device found\n")
-		fmt.Printf("Oasis App Version : %x\n", appVersion)
-		fmt.Printf("Oasis App Address : %s\n", address)
+		fmt.Printf("Filecoin App Version : %x\n", appVersion)
+		fmt.Printf("Filecoin App Address : %s\n", address)
 	}
 }
 
-// ConnectLedgerOasisApp connects to Oasis app based on address
-func ConnectLedgerOasisApp(seekingAddress string, path []uint32) (*LedgerFilecoin, error) {
+// ConnectLedgerFilecoinApp connects to Oasis app based on address
+func ConnectLedgerFilecoinApp(seekingAddress string, path []uint32) (*LedgerFilecoin, error) {
 	for i := uint(0); i < ledger_go.CountLedgerDevices(); i += 1 {
 		ledgerDevice, err := ledger_go.GetLedger(i)
 		if err != nil {
@@ -78,7 +80,7 @@ func ConnectLedgerOasisApp(seekingAddress string, path []uint32) (*LedgerFilecoi
 		}
 
 		app := LedgerFilecoin{ledgerDevice, VersionInfo{}}
-		_, address, err := app.GetAddressPubKeyEd25519(path)
+		_, address, err := app.GetAddressPubKeySECP256K1(path)
 		if err != nil {
 			defer app.Close()
 			continue
@@ -87,11 +89,11 @@ func ConnectLedgerOasisApp(seekingAddress string, path []uint32) (*LedgerFilecoi
 			return &app, nil
 		}
 	}
-	return nil, fmt.Errorf("no Oasis app with specified address found")
+	return nil, fmt.Errorf("no Filecoin app with specified address found")
 }
 
-// FindLedgerOasisApp finds the Oasis app running in a Ledger device
-func FindLedgerOasisApp() (*LedgerFilecoin, error) {
+// FindLedgerFilecoinApp finds the Filecoin app running in a Ledger device
+func FindLedgerFilecoinApp() (*LedgerFilecoin, error) {
 	ledgerAPI, err := ledger_go.FindLedger()
 
 	if err != nil {
@@ -104,7 +106,7 @@ func FindLedgerOasisApp() (*LedgerFilecoin, error) {
 	if err != nil {
 		defer ledgerAPI.Close()
 		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] Class not supported" {
-			return nil, fmt.Errorf("are you sure the Oasis app is open?")
+			return nil, fmt.Errorf("are you sure the Filecoin app is open?")
 		}
 		return nil, err
 	}
@@ -118,7 +120,7 @@ func FindLedgerOasisApp() (*LedgerFilecoin, error) {
 	return &app, err
 }
 
-// Close closes a connection with the Oasis user app
+// Close closes a connection with the Filecoin user app
 func (ledger *LedgerFilecoin) Close() error {
 	return ledger.api.Close()
 }
@@ -128,7 +130,7 @@ func (ledger *LedgerFilecoin) CheckVersion(ver VersionInfo) error {
 	return CheckVersion(ver, VersionInfo{0, 0, 3, 0})
 }
 
-// GetVersion returns the current version of the Oasis user app
+// GetVersion returns the current version of the Filecoin user app
 func (ledger *LedgerFilecoin) GetVersion() (*VersionInfo, error) {
 	message := []byte{CLA, INSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
@@ -151,29 +153,29 @@ func (ledger *LedgerFilecoin) GetVersion() (*VersionInfo, error) {
 	return &ledger.version, nil
 }
 
-// SignEd25519 signs a transaction using Oasis user app
+// SignSECP256K1 signs a transaction using Filecoin user app
 // this command requires user confirmation in the device
-func (ledger *LedgerFilecoin) SignEd25519(bip44Path []uint32, context []byte, transaction []byte) ([]byte, error) {
-	return ledger.sign(bip44Path, context, transaction)
+func (ledger *LedgerFilecoin) SignSECP256K1(bip44Path []uint32, transaction []byte) ([]byte, error) {
+	return ledger.sign(bip44Path, transaction)
 }
 
-// GetPublicKeyEd25519 retrieves the public key for the corresponding bip44 derivation path
+// GetPublicKeySECP256K1 retrieves the public key for the corresponding bip44 derivation path
 // this command DOES NOT require user confirmation in the device
-func (ledger *LedgerFilecoin) GetPublicKeyEd25519(bip44Path []uint32) ([]byte, error) {
-	pubkey, _, err := ledger.retrieveAddressPubKeyEd25519(bip44Path, false)
+func (ledger *LedgerFilecoin) GetPublicKeySECP256K1(bip44Path []uint32) ([]byte, error) {
+	pubkey, _, err := ledger.retrieveAddressPubKeySECP256K1(bip44Path, false)
 	return pubkey, err
 }
 
-// GetAddressPubKeyEd25519 returns the pubkey and address (bech32)
+// GetAddressPubKeySECP256K1 returns the pubkey and address
 // this command does not require user confirmation
-func (ledger *LedgerFilecoin) GetAddressPubKeyEd25519(bip44Path []uint32) (pubkey []byte, addr string, err error) {
-	return ledger.retrieveAddressPubKeyEd25519(bip44Path, false)
+func (ledger *LedgerFilecoin) GetAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addr string, err error) {
+	return ledger.retrieveAddressPubKeySECP256K1(bip44Path, false)
 }
 
-// ShowAddressPubKeyEd25519 returns the pubkey (compressed) and address (bech(
+// ShowAddressPubKeySECP256K1 returns the pubkey (compressed) and address
 // this command requires user confirmation in the device
-func (ledger *LedgerFilecoin) ShowAddressPubKeyEd25519(bip44Path []uint32) (pubkey []byte, addr string, err error) {
-	return ledger.retrieveAddressPubKeyEd25519(bip44Path, true)
+func (ledger *LedgerFilecoin) ShowAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addr string, err error) {
+	return ledger.retrieveAddressPubKeySECP256K1(bip44Path, true)
 }
 
 func (ledger *LedgerFilecoin) GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
@@ -185,14 +187,14 @@ func (ledger *LedgerFilecoin) GetBip44bytes(bip44Path []uint32, hardenCount int)
 	return pathBytes, nil
 }
 
-func (ledger *LedgerFilecoin) sign(bip44Path []uint32, context []byte, transaction []byte) ([]byte, error) {
+func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte) ([]byte, error) {
 
-	pathBytes, err := ledger.GetBip44bytes(bip44Path, 5)
+	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
 	if err != nil {
 		return nil, err
 	}
 
-	chunks, err := prepareChunks(pathBytes, context, transaction)
+	chunks, err := prepareChunks(pathBytes, transaction)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +209,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, context []byte, transacti
 		payloadLen := byte(len(chunks[chunkIndex]))
 
 		if chunkIndex == 0 {
-			header := []byte{CLA, INSSignEd25519, PayloadChunkInit, 0, payloadLen}
+			header := []byte{CLA, INSSignSECP256K1, PayloadChunkInit, 0, payloadLen}
 			message = append(header, chunks[chunkIndex]...)
 		} else {
 
@@ -216,7 +218,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, context []byte, transacti
 				payloadDesc = byte(PayloadChunkLast)
 			}
 
-			header := []byte{CLA, INSSignEd25519, payloadDesc, 0, payloadLen}
+			header := []byte{CLA, INSSignSECP256K1, payloadDesc, 0, payloadLen}
 			message = append(header, chunks[chunkIndex]...)
 		}
 
@@ -242,8 +244,8 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, context []byte, transacti
 	return finalResponse, nil
 }
 
-// retrieveAddressPubKeyEd25519 returns the pubkey and address (bech32)
-func (ledger *LedgerFilecoin) retrieveAddressPubKeyEd25519(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addr string, err error) {
+// retrieveAddressPubKeySECP256K1 returns the pubkey and address
+func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addr string, err error) {
 	pathBytes, err := ledger.GetBip44bytes(bip44Path, 5)
 	if err != nil {
 		return nil, "", err
@@ -255,7 +257,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeyEd25519(bip44Path []uint32, r
 	}
 
 	// Prepare message
-	header := []byte{CLA, INSGetAddrEd25519, p1, 0, 0}
+	header := []byte{CLA, INSGetAddrSECP256K1, p1, 0, 0}
 	message := append(header, pathBytes...)
 	message[4] = byte(len(message) - len(header)) // update length
 
