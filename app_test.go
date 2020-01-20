@@ -18,7 +18,6 @@ package ledger_filecoin_go
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec"
@@ -79,7 +78,7 @@ func Test_UserGetPublicKey(t *testing.T) {
 	fmt.Printf("PUBLIC KEY: %x\n", pubKey)
 
 	assert.Equal(t,
-		"02d3ffcbd4ef64589c142d5642ee93264347c74944230587605bd7cc159a2be1c4",
+		"02e6a262c96c7d7fd015273ec469492c2626eb2e29d73e7f65c64d695670343aaa",
 		hex.EncodeToString(pubKey),
 		"Unexpected pubkey")
 }
@@ -106,10 +105,10 @@ func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
-	assert.Equal(t, "031e10b3a453db1e7324cd37e78820d7d150c13ba3bf784be204c91afe495816a1", hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, "0235e752dc6b4113f78edcf2cf7b8082e442021de5f00818f555397a6f181af795", hex.EncodeToString(pubKey), "Unexpected pubkey")
 
-	assert.Equal(t, "0120e301418e88da44ae76d45980b9e7ee27eb724e", hex.EncodeToString(addrByte), "Unexpected addr")
-	assert.Equal(t, "f1edrqcqmordnejltw2rmyboph5yt6w4so4f727fa", addrString, "Unexpected addr")
+	assert.Equal(t, "010f323f4709e8e4db0c1d4cd374f9f35201d26fb2", hex.EncodeToString(addrByte), "Unexpected addr")
+	assert.Equal(t, "f1b4zd6ryj5dsnwda5jtjxj6ptkia5e35s52ox7ka", addrString, "Unexpected addr")
 }
 
 func Test_GetAddressPubKeySECP256K1(t *testing.T) {
@@ -136,10 +135,10 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
 
-	assert.Equal(t, "02d3ffcbd4ef64589c142d5642ee93264347c74944230587605bd7cc159a2be1c4", hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, "02e6a262c96c7d7fd015273ec469492c2626eb2e29d73e7f65c64d695670343aaa", hex.EncodeToString(pubKey), "Unexpected pubkey")
 
-	assert.Equal(t, "0132bfcde1eb22d6832af220c06b7c4622eaf26246", hex.EncodeToString(addrByte), "Unexpected addr")
-	assert.Equal(t, "f1gk743yplelligkxsedagw7cgelvpeysgn5f7gci", addrString, "Unexpected addr")
+	assert.Equal(t, "01302a5c3302178cfd57cdea06e3ecadfe00d4237c", hex.EncodeToString(addrByte), "Unexpected addr")
+	assert.Equal(t, "f1gavfymycc6gp2v6n5idoh3fn7yanii34vgsqwpy", addrString, "Unexpected addr")
 }
 
 func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
@@ -164,9 +163,9 @@ func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
-	assert.Equal(t, "02d3ffcbd4ef64589c142d5642ee93264347c74944230587605bd7cc159a2be1c4", hex.EncodeToString(pubKey), "Unexpected pubkey")
-	assert.Equal(t, "0132bfcde1eb22d6832af220c06b7c4622eaf26246", hex.EncodeToString(addrByte), "Unexpected addr")
-	assert.Equal(t, "f1gk743yplelligkxsedagw7cgelvpeysgn5f7gci", addrString, "Unexpected addr")
+	assert.Equal(t, "02e6a262c96c7d7fd015273ec469492c2626eb2e29d73e7f65c64d695670343aaa", hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, "01302a5c3302178cfd57cdea06e3ecadfe00d4237c", hex.EncodeToString(addrByte), "Unexpected addr")
+	assert.Equal(t, "f1gavfymycc6gp2v6n5idoh3fn7yanii34vgsqwpy", addrString, "Unexpected addr")
 
 }
 
@@ -183,16 +182,16 @@ func Test_UserPK_HDPaths(t *testing.T) {
 
 	// TODO: Fix me
 	expected := []string{
-		"031e10b3a453db1e7324cd37e78820d7d150c13ba3bf784be204c91afe495816a1",
-		"03b481eeff158ba0044fa075b2a53cb34de11193699e0fd0ee8abb10fa2acd9bc3",
-		"032259104b7273ef2536ed502339ce9af0d86e0da7d7ada5e74fc4c889f6635df2",
-		"0231baabf58c017bd9fead1bf35678995dcd6008932e3be70e869e8531a305283a",
-		"03a9e6cbf4ce5a36c8b453ef7b20f5d9d06b71b4ac7546e5a273ccb5a49d2696cf",
-		"02f4e7c0c1f25c7f2dabc1a86c10d62d67e9bc26be75c630f4853a8e8ae2d1db42",
-		"03376ffe9d230cd4f937b7ed33e82d6240ad9e1326dc61d79a12096342b820405c",
-		"035e28f7574fec025c27ebd8cea256f15a98b832926735fb945689af77f8b081ce",
-		"027070981da387c2a91c9c73bccd11bd23514ee00fcdd7bc4e036a776d8fb59c5d",
-		"033364f9288fbc6bfdc10e5ba30c6c63b7f60bffc7152bef63e922da72eee22c4c",
+		"0235e752dc6b4113f78edcf2cf7b8082e442021de5f00818f555397a6f181af795",
+		"02fc016f3d88dc7070cdd95b5754d32fd5290f850b7c2208fca0f715d35861de18",
+		"03b9b4026fd1bf1182f6063362e8329efa83d9ed8224efa65d1624a482b0d3bb41",
+		"0276476b80a1c4d0637df0ffcc2b21b17a319589d3afefc934e5ce9c8449892522",
+		"020103b0e5a8fbba7879db8b050769a4f15ca9b10876e23b86bb32bba42e81032a",
+		"0320316dba4ab1c0eb296467d69c32c6395af0cbc304e46f33e6929e9e6870bc3b",
+		"028c9af1429d01bb868d7fe34934f9e593ebe48b76f233752d02fb5292f144aa0f",
+		"02472a3365e5ff78d4dd17f8dd126bffb6ab76da933aeb037f5e7cd19c35f9ea1f",
+		"0361dcb79a58bd04d55c686794d5bf048faff71935abed829e758ba4077d9f91a4",
+		"02f94f7ea0c279104457124103dc5ea03e55466ff92faa1f3a1fef2f02aab2b16f",
 	}
 
 	for i := uint32(0); i < 10; i++ {
@@ -217,13 +216,6 @@ func Test_UserPK_HDPaths(t *testing.T) {
 	}
 }
 
-func getDummyTx() []byte {
-	base64tx := "ODg1NTAxZDE1MDA1MDRlNGQxYWMzZTg5YWM4OTFhNDUwMjU4NmZhYmQ5YjQxNzU1MDFiODgyNjE5" +
-		"ZDQ2NTU4ZjNkOWUzMTZkMTFiNDhkY2YyMTEzMjcwMjZhMDE0MTAwNDMwMDA5YzQ0MzAwNjFhODAwNDAK"
-	tx, _ := base64.StdEncoding.DecodeString(base64tx)
-	return tx
-}
-
 func Test_Sign(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
@@ -235,7 +227,7 @@ func Test_Sign(t *testing.T) {
 
 	path := []uint32{44, 461, 0, 0, 5}
 
-	message := getDummyTx()
+	message, _ := hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
 	signature, err := app.SignSECP256K1(path, message)
 	if err != nil {
 		t.Fatalf("[Sign] Error: %s\n", err.Error())
@@ -280,7 +272,7 @@ func Test_Sign_Fails(t *testing.T) {
 
 	path := []uint32{44, 461, 0, 0, 5}
 
-	message := getDummyTx()
+	message, _ := hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
 	garbage := []byte{65}
 	message = append(garbage, message...)
 
@@ -289,13 +281,13 @@ func Test_Sign_Fails(t *testing.T) {
 	errMessage := err.Error()
 	assert.Equal(t, errMessage, "Unexpected data type")
 
-	message = getDummyTx()
+	message, _ = hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
 	garbage = []byte{65}
 	message = append(message, garbage...)
 
 	_, err = app.SignSECP256K1(path, message)
 	assert.Error(t, err)
 	errMessage = err.Error()
-	assert.Equal(t, errMessage, "Unexpected data at end")
+	assert.Equal(t, errMessage, "Unexpected CBOR EOF")
 
 }

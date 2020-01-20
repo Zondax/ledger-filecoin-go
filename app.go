@@ -246,7 +246,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte) ([]by
 
 // retrieveAddressPubKeySECP256K1 returns the pubkey and address
 func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
-	pathBytes, err := ledger.GetBip44bytes(bip44Path, 5)
+	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -270,11 +270,26 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32,
 		return nil, nil, "", fmt.Errorf("Invalid response")
 	}
 
-	pubkey = response[0:32]
-	addrByteLength := int(response[33])
-	addrByte = response[33:addrByteLength]
-	addrStringLength := int(response[33+addrByteLength+1])
-	addrString = string(response[33+addrByteLength+2:addrStringLength])
+	cursor := 0
+
+	// Read pubkey
+	pubkey = response[cursor:33]
+	cursor = cursor + 33
+
+	// Read addr byte format length
+	addrByteLength := int(response[cursor])
+	cursor = cursor + 1
+
+	// Read addr byte format
+	addrByte = response[cursor:cursor+addrByteLength]
+	cursor = cursor + addrByteLength
+
+	// Read addr strin format length
+	addrStringLength := int(response[cursor])
+	cursor = cursor + 1
+
+	// Read addr string format
+	addrString = string(response[cursor:cursor + addrStringLength])
 
 	return pubkey, addrByte, addrString , err
 }
