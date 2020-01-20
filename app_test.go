@@ -18,7 +18,6 @@ package ledger_filecoin_go
 
 import (
 	"crypto/sha256"
-	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -96,21 +95,21 @@ func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 
 	path := []uint32{44, 461, 0, 0, 0}
 
-	pubKey, addr, err := app.GetAddressPubKeySECP256K1(path)
+	pubKey, addrByte, addrString, err := app.GetAddressPubKeySECP256K1(path)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("PUBLIC KEY : %x\n", pubKey)
-	// TODO : Format address ?
-	fmt.Printf("BYTES ADDR: %s\n", addr)
+	fmt.Printf("BYTE ADDR: %x\n", addrByte)
+	fmt.Printf("STRING ADDR: %s\n", addrString)
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
 	assert.Equal(t, "031e10b3a453db1e7324cd37e78820d7d150c13ba3bf784be204c91afe495816a1", hex.EncodeToString(pubKey), "Unexpected pubkey")
 
-	// TODO : fix me get actual address
-	assert.Equal(t, "0120e301418e88da44ae76d45980b9e7ee27eb724e", addr, "Unexpected addr")
+	assert.Equal(t, "0120e301418e88da44ae76d45980b9e7ee27eb724e", hex.EncodeToString(addrByte), "Unexpected addr")
+	assert.Equal(t, "f1edrqcqmordnejltw2rmyboph5yt6w4so4f727fa", addrString, "Unexpected addr")
 }
 
 func Test_GetAddressPubKeySECP256K1(t *testing.T) {
@@ -124,22 +123,23 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 
 	path := []uint32{44, 461, 5, 0, 21}
 
-	pubKey, addr, err := app.GetAddressPubKeySECP256K1(path)
+	pubKey, addrByte, addrString, err := app.GetAddressPubKeySECP256K1(path)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("PUBLIC KEY : %x\n", pubKey)
-	fmt.Printf("ADDR: %s\n", addr)
+	fmt.Printf("BYTE ADDR: %x\n", addrByte)
+	fmt.Printf("STRING ADDR: %s\n", addrString)
+
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
 
-	// TODO: Fix me (get proper pubkey)
 	assert.Equal(t, "02d3ffcbd4ef64589c142d5642ee93264347c74944230587605bd7cc159a2be1c4", hex.EncodeToString(pubKey), "Unexpected pubkey")
 
-	// TODO : fix me get actual address
-	assert.Equal(t, "0132bfcde1eb22d6832af220c06b7c4622eaf26246", addr, "Unexpected addr")
+	assert.Equal(t, "0132bfcde1eb22d6832af220c06b7c4622eaf26246", hex.EncodeToString(addrByte), "Unexpected addr")
+	assert.Equal(t, "f1gk743yplelligkxsedagw7cgelvpeysgn5f7gci", addrString, "Unexpected addr")
 }
 
 func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
@@ -153,19 +153,21 @@ func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
 
 	path := []uint32{44, 461, 5, 0, 21}
 
-	pubKey, addr, err := app.ShowAddressPubKeySECP256K1(path)
+	pubKey, addrByte, addrString, err := app.ShowAddressPubKeySECP256K1(path)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("PUBLIC KEY : %x\n", pubKey)
-	fmt.Printf("ADDR: %s\n", addr)
+	fmt.Printf("BYTE ADDR: %x\n", addrByte)
+	fmt.Printf("STRING ADDR: %s\n", addrString)
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
-	// TODO: Fix me (get proper pubkey and address)
 	assert.Equal(t, "02d3ffcbd4ef64589c142d5642ee93264347c74944230587605bd7cc159a2be1c4", hex.EncodeToString(pubKey), "Unexpected pubkey")
-	assert.Equal(t, "0132bfcde1eb22d6832af220c06b7c4622eaf26246", addr, "Unexpected addr")
+	assert.Equal(t, "0132bfcde1eb22d6832af220c06b7c4622eaf26246", hex.EncodeToString(addrByte), "Unexpected addr")
+	assert.Equal(t, "f1gk743yplelligkxsedagw7cgelvpeysgn5f7gci", addrString, "Unexpected addr")
+
 }
 
 func Test_UserPK_HDPaths(t *testing.T) {

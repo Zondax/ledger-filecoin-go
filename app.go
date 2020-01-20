@@ -162,19 +162,19 @@ func (ledger *LedgerFilecoin) SignSECP256K1(bip44Path []uint32, transaction []by
 // GetPublicKeySECP256K1 retrieves the public key for the corresponding bip44 derivation path
 // this command DOES NOT require user confirmation in the device
 func (ledger *LedgerFilecoin) GetPublicKeySECP256K1(bip44Path []uint32) ([]byte, error) {
-	pubkey, _, err := ledger.retrieveAddressPubKeySECP256K1(bip44Path, false)
+	pubkey, _, _, err := ledger.retrieveAddressPubKeySECP256K1(bip44Path, false)
 	return pubkey, err
 }
 
-// GetAddressPubKeySECP256K1 returns the pubkey and address
+// GetAddressPubKeySECP256K1 returns the pubkey and addresses
 // this command does not require user confirmation
-func (ledger *LedgerFilecoin) GetAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addr string, err error) {
+func (ledger *LedgerFilecoin) GetAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	return ledger.retrieveAddressPubKeySECP256K1(bip44Path, false)
 }
 
-// ShowAddressPubKeySECP256K1 returns the pubkey (compressed) and address
+// ShowAddressPubKeySECP256K1 returns the pubkey (compressed) and addresses
 // this command requires user confirmation in the device
-func (ledger *LedgerFilecoin) ShowAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addr string, err error) {
+func (ledger *LedgerFilecoin) ShowAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	return ledger.retrieveAddressPubKeySECP256K1(bip44Path, true)
 }
 
@@ -245,7 +245,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte) ([]by
 }
 
 // retrieveAddressPubKeySECP256K1 returns the pubkey and address
-func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addr string, err error) {
+func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	pathBytes, err := ledger.GetBip44bytes(bip44Path, 5)
 	if err != nil {
 		return nil, "", err
@@ -271,7 +271,10 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32,
 	}
 
 	pubkey = response[0:32]
-	addr = string(response[32:])
+	addrByteLength := int(response[33])
+	addrByte = response[33:addrByteLength]
+	addrStringLength := int(response[33+addrByteLength+1])
+	addrString = string(response[33+addrByteLength+2:addrStringLength])
 
-	return pubkey, addr, err
+	return pubkey, addrByte, addrString , err
 }
