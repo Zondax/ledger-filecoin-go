@@ -60,18 +60,18 @@ func ListFilecoinDevices(path []uint32) {
 			continue
 		}
 
-		_, address, err := app.GetAddressPubKeySECP256K1(path)
+		_, _, addrString, err := app.GetAddressPubKeySECP256K1(path)
 		if err != nil {
 			continue
 		}
 
 		fmt.Printf("============ Device found\n")
 		fmt.Printf("Filecoin App Version : %x\n", appVersion)
-		fmt.Printf("Filecoin App Address : %s\n", address)
+		fmt.Printf("Filecoin App Address : %s\n", addrString)
 	}
 }
 
-// ConnectLedgerFilecoinApp connects to Oasis app based on address
+// ConnectLedgerFilecoinApp connects to Filecoin app based on address
 func ConnectLedgerFilecoinApp(seekingAddress string, path []uint32) (*LedgerFilecoin, error) {
 	for i := uint(0); i < ledger_go.CountLedgerDevices(); i += 1 {
 		ledgerDevice, err := ledger_go.GetLedger(i)
@@ -80,12 +80,12 @@ func ConnectLedgerFilecoinApp(seekingAddress string, path []uint32) (*LedgerFile
 		}
 
 		app := LedgerFilecoin{ledgerDevice, VersionInfo{}}
-		_, address, err := app.GetAddressPubKeySECP256K1(path)
+		_, _, addrString, err := app.GetAddressPubKeySECP256K1(path)
 		if err != nil {
 			defer app.Close()
 			continue
 		}
-		if seekingAddress == "" || address == seekingAddress {
+		if seekingAddress == "" || addrString == seekingAddress {
 			return &app, nil
 		}
 	}
@@ -248,7 +248,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte) ([]by
 func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	pathBytes, err := ledger.GetBip44bytes(bip44Path, 5)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, "", err
 	}
 
 	p1 := byte(0)
@@ -264,10 +264,10 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32,
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
-		return nil, "", err
+		return nil, nil, "", err
 	}
 	if len(response) < 39 {
-		return nil, "", fmt.Errorf("Invalid response")
+		return nil, nil, "", fmt.Errorf("Invalid response")
 	}
 
 	pubkey = response[0:32]
