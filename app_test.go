@@ -17,12 +17,12 @@
 package ledger_filecoin_go
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/blake2b"
 	"testing"
 )
 
@@ -228,6 +228,8 @@ func Test_Sign(t *testing.T) {
 	path := []uint32{44, 461, 0, 0, 5}
 
 	message, _ := hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
+
+
 	signature, err := app.SignSECP256K1(path, message)
 	if err != nil {
 		t.Fatalf("[Sign] Error: %s\n", err.Error())
@@ -245,20 +247,28 @@ func Test_Sign(t *testing.T) {
 		return
 	}
 
-	sig2, err := btcec.ParseDERSignature(signature[:], btcec.S256())
+	sig2, err := btcec.ParseDERSignature(signature.derSignature, btcec.S256())
 	if err != nil {
 		t.Fatalf("[ParseSig] Error: " + err.Error())
 		return
 	}
 
-	// REVIEW: we are doing a hash256, not a blake2b hash ?
-	hash := sha256.Sum256(message)
+	// double blake2b hashing
+	hash := blake2b.Sum256(message)
+	hash_cid_sum := blake2b.Sum256(append([]byte{0x01, 0x71, 0xa0, 0xe4, 0x02, 0x20}, hash[:]...))
 
-	verified := sig2.Verify(hash[:], pub2)
+	fmt.Printf("%x \n", hash_cid_sum)
+
+	verified := sig2.Verify(hash_cid_sum[:], pub2)
 	if !verified {
 		t.Fatalf("[VerifySig] Error verifying signature")
 		return
 	}
+
+	assert.Equal(t, "2c216aa1dc0d3a0bc0200fe5773176cdca1e3029da9be804e0a185a7b3496787", hex.EncodeToString(signature.r), "Unexpected r value in signature")
+	assert.Equal(t, "2fa4a09aaf73854f6df71a6e1e42e675a5d4ca1ac463b364eaf1fa39f45aab71", hex.EncodeToString(signature.s), "Unexpected s value iin signature")
+	assert.Equal(t, uint8(0x1b), signature.v, "Unexpected v value iin signature")
+
 }
 
 func Test_Sign_Fails(t *testing.T) {
