@@ -241,7 +241,7 @@ func Test_Sign(t *testing.T) {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	pub2, err := btcec.ParsePubKey(pubKey[:], btcec.S256())
+	pub2, err := btcec.ParsePubKey(pubKey, btcec.S256())
 	if err != nil {
 		t.Fatalf("[ParsePK] Error: " + err.Error())
 		return
@@ -257,16 +257,14 @@ func Test_Sign(t *testing.T) {
 	hash := blake2b.Sum256(message)
 	hash_cid_sum := blake2b.Sum256(append([]byte{0x01, 0x71, 0xa0, 0xe4, 0x02, 0x20}, hash[:]...))
 
-	fmt.Printf("%x \n", hash_cid_sum)
-
 	verified := sig2.Verify(hash_cid_sum[:], pub2)
 	if !verified {
 		t.Fatalf("[VerifySig] Error verifying signature")
 		return
 	}
 
-	assert.Equal(t, "2c216aa1dc0d3a0bc0200fe5773176cdca1e3029da9be804e0a185a7b3496787", hex.EncodeToString(signature.r), "Unexpected r value in signature")
-	assert.Equal(t, "2fa4a09aaf73854f6df71a6e1e42e675a5d4ca1ac463b364eaf1fa39f45aab71", hex.EncodeToString(signature.s), "Unexpected s value iin signature")
+	assert.Equal(t, "20316dba4ab1c0eb296467d69c32c6395af0cbc304e46f33e6929e9e6870bc3b", hex.EncodeToString(signature.r), "Unexpected r value in signature")
+	assert.Equal(t, "5390c901570334b7303ec18c499e3ee3670ea2a35c2090d59bf5bad71d1f1cd7", hex.EncodeToString(signature.s), "Unexpected s value iin signature")
 	assert.Equal(t, uint8(0x1b), signature.v, "Unexpected v value iin signature")
 
 }
