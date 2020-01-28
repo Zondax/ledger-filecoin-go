@@ -1,6 +1,6 @@
 # ledger-filecoin-go
 
-[![CircleCI](https://circleci.com/gh/ZondaX/ledger-filecoin-go.svg?style=shield)](https://circleci.com/gh/ZondaX/ledger-filecoin-go)
+[![CircleCI](https://circleci.com/gh/Zondax/ledger-filecoin-go.svg?style=shield)](https://circleci.com/gh/Zondax/ledger-filecoin-go)
 
 This project is work in progress. Some aspects are subject to change.
 
