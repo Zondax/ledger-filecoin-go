@@ -163,10 +163,14 @@ func (ledger *LedgerFilecoin) GetVersion() (*VersionInfo, error) {
 // SignSECP256K1 signs a transaction using Filecoin user app
 // this command requires user confirmation in the device
 func (ledger *LedgerFilecoin) SignSECP256K1(bip44Path []uint32, transaction []byte) (*SignatureAnswer, error) {
-	// TODO: Verify length
 	signatureBytes, err := ledger.sign(bip44Path, transaction)
 	if err != nil {
 		return nil, err
+	}
+
+	// R,S,V and at least 1 bytes of the der sig
+	if len(signatureBytes) < 66 {
+		return nil, fmt.Errorf("The signature provided is too short.")
 	}
 
 	signatureAnswer := SignatureAnswer{
