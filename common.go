@@ -24,6 +24,7 @@ import (
 
 const (
 	userMessageChunkSize = 250
+	publicKeyLength      = 65
 )
 
 // VersionInfo contains app version information
@@ -83,7 +84,7 @@ func GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
 		return nil, fmt.Errorf("path should contain 5 elements")
 	}
 	for index, element := range bip44Path {
-		pos := index*4
+		pos := index * 4
 		value := element
 		if index < hardenCount {
 			value = 0x80000000 | element
@@ -104,10 +105,9 @@ func prepareChunks(bip44PathBytes []byte, transaction []byte) ([][]byte, error) 
 	chunks[0] = bip44PathBytes
 	packetIndex++
 
-
 	for packetIndex < packetCount {
 		var start = (packetIndex - 1) * userMessageChunkSize
-		var end =  (packetIndex * userMessageChunkSize) - 1
+		var end = (packetIndex * userMessageChunkSize) - 1
 
 		if end >= len(transaction) {
 			chunks[packetIndex] = transaction[start:]
@@ -116,7 +116,6 @@ func prepareChunks(bip44PathBytes []byte, transaction []byte) ([][]byte, error) 
 		}
 		packetIndex++
 	}
-
 
 	return chunks, nil
 }

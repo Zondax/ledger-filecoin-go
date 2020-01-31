@@ -296,8 +296,8 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32,
 	cursor := 0
 
 	// Read pubkey
-	pubkey = response[cursor:33]
-	cursor = cursor + 33
+	pubkey = response[cursor:publicKeyLength]
+	cursor = cursor + publicKeyLength
 
 	// Read addr byte format length
 	addrByteLength := int(response[cursor])
