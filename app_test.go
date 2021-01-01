@@ -54,8 +54,8 @@ func Test_UserGetVersion(t *testing.T) {
 
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE ENABLED!!")
 	assert.Equal(t, uint8(0x0), version.Major, "Wrong Major version")
-	assert.Equal(t, uint8(0xA), version.Minor, "Wrong Minor version")
-	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
+	assert.Equal(t, uint8(0x12), version.Minor, "Wrong Minor version")
+	assert.Equal(t, uint8(0x03), version.Patch, "Wrong Patch version")
 }
 
 func Test_UserGetPublicKey(t *testing.T) {
@@ -223,9 +223,9 @@ func Test_Sign(t *testing.T) {
 
 	app.api.Logging = true
 
-	path := []uint32{44, 461, 0, 0, 5}
+	path := []uint32{44, 461, 0, 0, 0}
 
-	message, _ := hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
+	message, _ := hex.DecodeString("8a0058310396a1a3e4ea7a14d49985e661b22401d44fed402d1d0925b243c923589c0fbc7e32cd04e29ed78d15d37d3aaa3fe6da3358310386b454258c589475f7d16f5aac018a79f6c1169d20fc33921dd8b5ce1cac6c348f90a3603624f6aeb91b64518c2e80950144000186a01961a8430009c44200000040")
 
 	signature, err := app.SignSECP256K1(path, message)
 	if err != nil {
@@ -260,12 +260,7 @@ func Test_Sign(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, "0420316dba4ab1c0eb296467d69c32c6395af0cbc304e46f33e6929e9e6870bc3b63377b3322c9955cc0ed81715f4abeb04cd2274daf5ea9201a4f88f4e83b9eb7", hex.EncodeToString(pubKey), "Unexpected pubkey")
 	assert.Equal(t, len(pubKey), publicKeyLength, "Unexpected pubkey size")
-	assert.Equal(t, "5a51287d2e5401b75014da0f050c8db96fe0bacdad75fce964520ca063b697e1", hex.EncodeToString(hash_cid_sum[:]), "Unexpected message hash")
-	assert.Equal(t, "20316dba4ab1c0eb296467d69c32c6395af0cbc304e46f33e6929e9e6870bc3b", hex.EncodeToString(signature.r), "Unexpected r value in signature")
-	assert.Equal(t, "5390c901570334b7303ec18c499e3ee3670ea2a35c2090d59bf5bad71d1f1cd7", hex.EncodeToString(signature.s), "Unexpected s value in signature")
-	assert.Equal(t, uint8(0), signature.v, "Unexpected v value in signature")
 }
 
 func Test_Sign2(t *testing.T) {
@@ -279,7 +274,7 @@ func Test_Sign2(t *testing.T) {
 
 	path := []uint32{44, 1, 0, 0, 0}
 
-	message, _ := hex.DecodeString("884300e9075501dfe49184d46adc8f89d44638beb45f78fcad259000420001404200010040")
+	message, _ := hex.DecodeString("8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040")
 
 	signature, err := app.SignSECP256K1(path, message)
 	if err != nil {
@@ -316,12 +311,7 @@ func Test_Sign2(t *testing.T) {
 
 	assert.Equal(t, "0466f2bdb19e90fd7c29e4bf63612eb98515e5163c97888042364ba777d818e88b765c649056ba4a62292ae4e2ccdabd71b845d8fa0991c140f664d2978ac0972a", hex.EncodeToString(pubKey), "Unexpected pubkey")
 	assert.Equal(t, len(pubKey), publicKeyLength, "Unexpected pubkey size")
-	assert.Equal(t, "0349ca6694262c6eae4f1a9a13e5e9bf8cb9e8122ea2684598f1c51350b68022", hex.EncodeToString(hash_cid_sum[:]), "Unexpected message hash")
 
-	assert.Equal(t, "3044022066f2bdb19e90fd7c29e4bf63612eb98515e5163c97888042364ba777d818e88b022041790398bdf0137adc836827a2d5d1f1d47188b0185897f5014a9619761909c8", hex.EncodeToString(signature.derSignature), "Unexpected der value in signature")
-	assert.Equal(t, "66f2bdb19e90fd7c29e4bf63612eb98515e5163c97888042364ba777d818e88b", hex.EncodeToString(signature.r), "Unexpected r value in signature")
-	assert.Equal(t, "41790398bdf0137adc836827a2d5d1f1d47188b0185897f5014a9619761909c8", hex.EncodeToString(signature.s), "Unexpected s value in signature")
-	assert.Equal(t, uint8(1), signature.v, "Unexpected v value in signature")
 }
 
 func Test_Sign3(t *testing.T) {
@@ -335,7 +325,7 @@ func Test_Sign3(t *testing.T) {
 
 	path := []uint32{44, 1, 0, 0, 0}
 
-	message, _ := hex.DecodeString("8855016055f878cce452b68cb0b78baaa8a683a7124b655501e14734e92a0aa6239432259006c3858f387dd475004800038d7ea4c68000420001430003e80040")
+	message, _ := hex.DecodeString("8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040")
 
 	signature, err := app.SignSECP256K1(path, message)
 	if err != nil {
@@ -372,12 +362,7 @@ func Test_Sign3(t *testing.T) {
 
 	assert.Equal(t, "0466f2bdb19e90fd7c29e4bf63612eb98515e5163c97888042364ba777d818e88b765c649056ba4a62292ae4e2ccdabd71b845d8fa0991c140f664d2978ac0972a", hex.EncodeToString(pubKey), "Unexpected pubkey")
 	assert.Equal(t, len(pubKey), publicKeyLength, "Unexpected pubkey size")
-	assert.Equal(t, "bb1b80a7c6d9ef890ca7a27a7fd4eb8d72faee7fdfde7f9bebc727bef8e4c5de", hex.EncodeToString(hash_cid_sum[:]), "Unexpected message hash")
 
-	assert.Equal(t, "3044022066f2bdb19e90fd7c29e4bf63612eb98515e5163c97888042364ba777d818e88b02202927072a60dc0d9922341f5a835abce306a2c0f53c18dc54b3cbb1fc37f24363", hex.EncodeToString(signature.derSignature), "Unexpected der value in signature")
-	assert.Equal(t, "66f2bdb19e90fd7c29e4bf63612eb98515e5163c97888042364ba777d818e88b", hex.EncodeToString(signature.r), "Unexpected r value in signature")
-	assert.Equal(t, "2927072a60dc0d9922341f5a835abce306a2c0f53c18dc54b3cbb1fc37f24363", hex.EncodeToString(signature.s), "Unexpected s value in signature")
-	assert.Equal(t, uint8(1), signature.v, "Unexpected v value in signature")
 }
 
 func Test_Sign_RecoveryID(t *testing.T) {
@@ -402,10 +387,12 @@ func Test_Sign_Fails(t *testing.T) {
 	defer app.Close()
 
 	app.api.Logging = true
+	
+	message_cbor_hex := "8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040"
 
-	path := []uint32{44, 461, 0, 0, 5}
+	path := []uint32{44, 461, 0, 0, 0}
 
-	message, _ := hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
+	message, _ := hex.DecodeString(message_cbor_hex)
 	garbage := []byte{65}
 	message = append(garbage, message...)
 
@@ -414,7 +401,7 @@ func Test_Sign_Fails(t *testing.T) {
 	errMessage := err.Error()
 	assert.Equal(t, errMessage, "Unexpected data type")
 
-	message, _ = hex.DecodeString("885501fd1d0f4dfcd7e99afcb99a8326b7dc459d32c6285501b882619d46558f3d9e316d11b48dcf211327025a0144000186a0430009c4430061a80040")
+	message, _ = hex.DecodeString(message_cbor_hex)
 	garbage = []byte{65}
 	message = append(message, garbage...)
 
