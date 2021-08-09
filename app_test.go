@@ -46,8 +46,6 @@ func Test_UserGetVersion(t *testing.T) {
 	}
 	defer app.Close()
 
-	app.api.Logging = true
-
 	version, err := app.GetVersion()
 	require.Nil(t, err, "Detected error")
 	fmt.Println(version)
@@ -64,8 +62,6 @@ func Test_UserGetPublicKey(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 
 	path := []uint32{44, 461, 5, 0, 21}
 
@@ -90,8 +86,6 @@ func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 
 	path := []uint32{44, 461, 0, 0, 0}
 
@@ -119,8 +113,6 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 	}
 	defer app.Close()
 
-	app.api.Logging = true
-
 	path := []uint32{44, 461, 5, 0, 21}
 
 	pubKey, addrByte, addrString, err := app.GetAddressPubKeySECP256K1(path)
@@ -147,8 +139,6 @@ func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
 	}
 	defer app.Close()
 
-	app.api.Logging = true
-
 	path := []uint32{44, 461, 5, 0, 21}
 
 	pubKey, addrByte, addrString, err := app.ShowAddressPubKeySECP256K1(path)
@@ -174,8 +164,6 @@ func Test_UserPK_HDPaths(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 
 	path := []uint32{44, 1, 0, 0, 0}
 
@@ -220,8 +208,6 @@ func Test_Sign(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 
 	path := []uint32{44, 461, 0, 0, 0}
 
@@ -269,8 +255,6 @@ func Test_Sign2(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 
 	path := []uint32{44, 1, 0, 0, 0}
 
@@ -320,8 +304,6 @@ func Test_Sign3(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 
 	path := []uint32{44, 1, 0, 0, 0}
 
@@ -385,8 +367,6 @@ func Test_Sign_Fails(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-
-	app.api.Logging = true
 	
 	message_cbor_hex := "8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040"
 
