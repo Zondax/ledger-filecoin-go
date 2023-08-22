@@ -50,6 +50,14 @@ type SignatureAnswer struct {
 	derSignature []byte
 }
 
+func (sa *SignatureAnswer) SignatureBytes() []byte {
+	out := make([]byte, 65)
+	copy(out[:32], sa.r)
+	copy(out[32:64], sa.s)
+	out[64] = sa.v
+	return out
+}
+
 // Displays existing Ledger Filecoin apps by address
 func ListFilecoinDevices(path []uint32) {
 	ledgerAdmin := ledger_go.NewLedgerAdmin()
