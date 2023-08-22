@@ -35,7 +35,7 @@ func Test_PathGeneration0(t *testing.T) {
 	pathBytes, err := GetBip44bytes(bip44Path, 0)
 
 	if err != nil {
-		t.Fatalf( "Detected error, err: %s\n", err.Error())
+		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("Path: %x\n", pathBytes)
