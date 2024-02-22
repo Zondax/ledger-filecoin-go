@@ -18,13 +18,14 @@ package ledger_filecoin_go
 
 import (
 	"fmt"
-	"github.com/zondax/ledger-go"
+
+	ledger_go "github.com/zondax/ledger-go"
 )
 
 const (
 	CLA = 0x06
 
-	INSGetVersion     = 0
+	INSGetVersion       = 0
 	INSGetAddrSECP256K1 = 1
 	INSSignSECP256K1    = 2
 )
@@ -44,10 +45,18 @@ type LedgerFilecoin struct {
 }
 
 type SignatureAnswer struct {
-	r []byte
-	s []byte
-	v uint8
+	r            []byte
+	s            []byte
+	v            uint8
 	derSignature []byte
+}
+
+func (sa *SignatureAnswer) SignatureBytes() []byte {
+	out := make([]byte, 65)
+	copy(out[:32], sa.r)
+	copy(out[32:64], sa.s)
+	out[64] = sa.v
+	return out
 }
 
 // Displays existing Ledger Filecoin apps by address
@@ -307,7 +316,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32,
 	cursor = cursor + 1
 
 	// Read addr byte format
-	addrByte = response[cursor:cursor+addrByteLength]
+	addrByte = response[cursor : cursor+addrByteLength]
 	cursor = cursor + addrByteLength
 
 	// Read addr strin format length
@@ -315,7 +324,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKeySECP256K1(bip44Path []uint32,
 	cursor = cursor + 1
 
 	// Read addr string format
-	addrString = string(response[cursor:cursor + addrStringLength])
+	addrString = string(response[cursor : cursor+addrStringLength])
 
-	return pubkey, addrByte, addrString , err
+	return pubkey, addrByte, addrString, err
 }
