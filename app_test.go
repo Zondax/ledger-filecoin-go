@@ -367,7 +367,7 @@ func Test_Sign_Fails(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer app.Close()
-	
+
 	message_cbor_hex := "8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040"
 
 	path := []uint32{44, 461, 0, 0, 0}
