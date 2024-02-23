@@ -18,7 +18,8 @@ package ledger_filecoin_go
 
 import (
 	"fmt"
-	"github.com/zondax/ledger-go"
+
+	ledger_go "github.com/zondax/ledger-go"
 )
 
 const (
@@ -27,6 +28,9 @@ const (
 	INSGetVersion       = 0
 	INSGetAddrSECP256K1 = 1
 	INSSignSECP256K1    = 2
+	INSSignDataCap      = 5
+	INSSignClientDeal   = 6
+	INSSignRawBytes     = 7
 )
 
 const (

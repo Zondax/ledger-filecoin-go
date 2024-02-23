@@ -19,12 +19,13 @@ package ledger_filecoin_go
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec"
+	"testing"
+
+	"github.com/btcsuite/btcd"
 	"github.com/ipsn/go-secp256k1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/blake2b"
-	"testing"
 )
 
 // Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
