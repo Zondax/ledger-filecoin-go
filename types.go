@@ -53,3 +53,17 @@ type SignatureAnswer struct {
 	derSignature []byte
 }
 
+// VersionInfo contains app version information
+type VersionInfo struct {
+	AppMode uint8
+	Major   uint8
+	Minor   uint8
+	Patch   uint8
+}
+
+
+// VersionRequiredError the command is not supported by this app
+type VersionRequiredError struct {
+	Found    VersionInfo
+	Required VersionInfo
+}
