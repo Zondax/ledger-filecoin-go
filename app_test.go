@@ -20,7 +20,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
-
+    "github.com/btcsuite/btcd/btcec/v2"
+    ecdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/ipsn/go-secp256k1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -224,13 +225,13 @@ func Test_Sign(t *testing.T) {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	pub2, err := btcec.ParsePubKey(pubKey, btcec.S256())
+	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
 		t.Fatalf("[ParsePK] Error: " + err.Error())
 		return
 	}
 
-	sig2, err := btcec.ParseDERSignature(signature.derSignature, btcec.S256())
+	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
 		t.Fatalf("[ParseSig] Error: " + err.Error())
 		return
@@ -271,13 +272,13 @@ func Test_Sign2(t *testing.T) {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	pub2, err := btcec.ParsePubKey(pubKey, btcec.S256())
+	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
 		t.Fatalf("[ParsePK] Error: " + err.Error())
 		return
 	}
 
-	sig2, err := btcec.ParseDERSignature(signature.derSignature, btcec.S256())
+	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
 		t.Fatalf("[ParseSig] Error: " + err.Error())
 		return
@@ -320,13 +321,13 @@ func Test_Sign3(t *testing.T) {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	pub2, err := btcec.ParsePubKey(pubKey, btcec.S256())
+	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
 		t.Fatalf("[ParsePK] Error: " + err.Error())
 		return
 	}
 
-	sig2, err := btcec.ParseDERSignature(signature.derSignature, btcec.S256())
+	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
 		t.Fatalf("[ParseSig] Error: " + err.Error())
 		return
