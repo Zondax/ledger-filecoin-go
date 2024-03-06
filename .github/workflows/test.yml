@@ -14,5 +14,6 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.19"
-      - name: Testing short mode
-        run: go test ./... -short -v
+      - name: Testing build
+        # We do not run go test, as it requires a device
+        run: go build
