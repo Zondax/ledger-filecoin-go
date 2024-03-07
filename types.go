@@ -25,8 +25,8 @@ const (
 	CLA                 = 0x06
 
 	INSGetVersion       = 0
-	INSGetAddrSECP256K1 = 1
-	INSSignSECP256K1    = 2
+	INSGetAddr          = 1
+	INSSign             = 2
 	INSSignDataCap      = 5
 	INSSignClientDeal   = 6
 	INSSignRawBytes     = 7
