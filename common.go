@@ -27,22 +27,8 @@ const (
 	publicKeyLength      = 65
 )
 
-// VersionInfo contains app version information
-type VersionInfo struct {
-	AppMode uint8
-	Major   uint8
-	Minor   uint8
-	Patch   uint8
-}
-
 func (c VersionInfo) String() string {
 	return fmt.Sprintf("%d.%d.%d", c.Major, c.Minor, c.Patch)
-}
-
-// VersionRequiredError the command is not supported by this app
-type VersionRequiredError struct {
-	Found    VersionInfo
-	Required VersionInfo
 }
 
 func (e VersionRequiredError) Error() string {
