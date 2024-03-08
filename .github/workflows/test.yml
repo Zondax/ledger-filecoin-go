@@ -1,9 +1,10 @@
 name: Test
 on:
+  workflow_dispatch:
   push:
+  pull_request:
     branches:
       - main
-  pull_request:
 
 jobs:
   Test:
@@ -13,7 +14,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19"
+          go-version: "1.21"
       - name: Testing build
-        # We do not run go test, as it requires a device
         run: go build
+      - name: Run common tests
+        run: go test -run '.' common_test.go common.go types.go
