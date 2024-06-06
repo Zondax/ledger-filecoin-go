@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.1.3
 	github.com/ipsn/go-secp256k1 v0.0.0-20180726113642-9d62b9f0bc52
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.9.0
 	github.com/zondax/ledger-go v0.14.3
 	golang.org/x/crypto v0.24.0
 )
@@ -24,5 +24,5 @@ require (
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.56.3 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
