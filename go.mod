@@ -3,7 +3,7 @@ module github.com/zondax/ledger-filecoin-go
 go 1.21
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.1.3
+	github.com/btcsuite/btcd/btcec/v2 v2.3.3
 	github.com/ipsn/go-secp256k1 v0.0.0-20180726113642-9d62b9f0bc52
 	github.com/stretchr/testify v1.9.0
 	github.com/zondax/ledger-go v0.14.3
