@@ -66,7 +66,7 @@ func Test_UserGetPublicKey(t *testing.T) {
 
 	path := []uint32{44, 461, 5, 0, 21}
 
-	pubKey, err := app.GetPublicKey(path)
+	pubKey, err := app.GetPublicKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -90,7 +90,7 @@ func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 
 	path := []uint32{44, 461, 0, 0, 0}
 
-	pubKey, addrByte, addrString, err := app.GetAddressPubKey(path)
+	pubKey, addrByte, addrString, err := app.GetAddressPubKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -116,7 +116,7 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 
 	path := []uint32{44, 461, 5, 0, 21}
 
-	pubKey, addrByte, addrString, err := app.GetAddressPubKey(path)
+	pubKey, addrByte, addrString, err := app.GetAddressPubKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -142,7 +142,7 @@ func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
 
 	path := []uint32{44, 461, 5, 0, 21}
 
-	pubKey, addrByte, addrString, err := app.ShowAddressPubKey(path)
+	pubKey, addrByte, addrString, err := app.ShowAddressPubKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -185,7 +185,7 @@ func Test_UserPK_HDPaths(t *testing.T) {
 	for i := uint32(0); i < 10; i++ {
 		path[4] = i
 
-		pubKey, err := app.GetPublicKey(path)
+		pubKey, err := app.GetPublicKey(path, SECP256K1)
 		if err != nil {
 			t.Fatalf("Detected error, err: %s\n", err.Error())
 		}
@@ -214,13 +214,13 @@ func Test_Sign(t *testing.T) {
 
 	message, _ := hex.DecodeString("8a0058310396a1a3e4ea7a14d49985e661b22401d44fed402d1d0925b243c923589c0fbc7e32cd04e29ed78d15d37d3aaa3fe6da3358310386b454258c589475f7d16f5aac018a79f6c1169d20fc33921dd8b5ce1cac6c348f90a3603624f6aeb91b64518c2e80950144000186a01961a8430009c44200000040")
 
-	signature, err := app.Sign(path, message)
+	signature, err := app.Sign(path, message, SECP256K1)
 	if err != nil {
 		t.Fatalf("[Sign] Error: %s\n", err.Error())
 	}
 
 	// Verify Signature
-	pubKey, err := app.GetPublicKey(path)
+	pubKey, err := app.GetPublicKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -261,13 +261,13 @@ func Test_Sign2(t *testing.T) {
 
 	message, _ := hex.DecodeString("8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040")
 
-	signature, err := app.Sign(path, message)
+	signature, err := app.Sign(path, message, SECP256K1)
 	if err != nil {
 		t.Fatalf("[Sign] Error: %s\n", err.Error())
 	}
 
 	// Verify Signature
-	pubKey, err := app.GetPublicKey(path)
+	pubKey, err := app.GetPublicKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -310,13 +310,13 @@ func Test_Sign3(t *testing.T) {
 
 	message, _ := hex.DecodeString("8a0055019f4c34943e4b92f4542bed08af54be955629fc6f5501ef8fd1e48a1e0f1a49310ec675bc677a3954147400430003e81903e84200014200010040")
 
-	signature, err := app.Sign(path, message)
+	signature, err := app.Sign(path, message, SECP256K1)
 	if err != nil {
 		t.Fatalf("[Sign] Error: %s\n", err.Error())
 	}
 
 	// Verify Signature
-	pubKey, err := app.GetPublicKey(path)
+	pubKey, err := app.GetPublicKey(path, SECP256K1)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -377,7 +377,7 @@ func Test_Sign_Fails(t *testing.T) {
 	garbage := []byte{65}
 	message = append(garbage, message...)
 
-	_, err = app.Sign(path, message)
+	_, err = app.Sign(path, message, SECP256K1)
 	assert.Error(t, err)
 	errMessage := err.Error()
 	assert.Equal(t, errMessage, "Unexpected data type")
@@ -386,7 +386,7 @@ func Test_Sign_Fails(t *testing.T) {
 	garbage = []byte{65}
 	message = append(message, garbage...)
 
-	_, err = app.Sign(path, message)
+	_, err = app.Sign(path, message, SECP256K1)
 	assert.Error(t, err)
 	errMessage = err.Error()
 	assert.Equal(t, errMessage, "Unexpected CBOR EOF")
