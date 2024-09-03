@@ -145,14 +145,13 @@ func (ledger *LedgerFilecoin) GetVersion() (*VersionInfo, error) {
 
 // Deprecated: Use Sign method instead.
 func (ledger *LedgerFilecoin) SignSECP256K1(bip44Path []uint32, transaction []byte) (*SignatureAnswer, error) {
-    return ledger.Sign(bip44Path, transaction)
+	return ledger.Sign(bip44Path, transaction, SECP256K1)
 }
 
-
-// SignSECP256K1 signs a transaction using Filecoin user app
+// Sign signs a transaction using Filecoin user app
 // this command requires user confirmation in the device
-func (ledger *LedgerFilecoin) Sign(bip44Path []uint32, transaction []byte) (*SignatureAnswer, error) {
-	signatureBytes, err := ledger.sign(bip44Path, transaction)
+func (ledger *LedgerFilecoin) Sign(bip44Path []uint32, transaction []byte, curve CryptoCurve) (*SignatureAnswer, error) {
+	signatureBytes, err := ledger.sign(bip44Path, transaction, curve)
 	if err != nil {
 		return nil, err
 	}
@@ -171,43 +170,39 @@ func (ledger *LedgerFilecoin) Sign(bip44Path []uint32, transaction []byte) (*Sig
 	return &signatureAnswer, nil
 }
 
-
-
 // Deprecated: Use GetPublicKey instead.
 func (ledger *LedgerFilecoin) GetPublicKeySECP256K1(bip44Path []uint32) ([]byte, error) {
-	pubkey, err := ledger.GetPublicKey(bip44Path)
+	pubkey, err := ledger.GetPublicKey(bip44Path, SECP256K1)
 	return pubkey, err
 }
 
-
-// GetPublicKeySECP256K1 retrieves the public key for the corresponding bip44 derivation path
+// GetPublicKey retrieves the public key for the corresponding bip44 derivation path
 // this command DOES NOT require user confirmation in the device
-func (ledger *LedgerFilecoin) GetPublicKey(bip44Path []uint32) ([]byte, error) {
-	pubkey, _, _, err := ledger.retrieveAddressPubKey(bip44Path, false)
+func (ledger *LedgerFilecoin) GetPublicKey(bip44Path []uint32, curve CryptoCurve) ([]byte, error) {
+	pubkey, _, _, err := ledger.retrieveAddressPubKey(bip44Path, curve, false)
 	return pubkey, err
 }
 
 // Deprecated: Use GetAddressPubKey instead.
 func (ledger *LedgerFilecoin) GetAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addrByte []byte, addrString string, err error) {
-	return ledger.GetAddressPubKey(bip44Path)
+	return ledger.GetAddressPubKey(bip44Path, SECP256K1)
 }
 
-// GetAddressPubKeySECP256K1 returns the pubkey and addresses
+// GetAddressPubKey returns the pubkey and addresses
 // this command does not require user confirmation
-func (ledger *LedgerFilecoin) GetAddressPubKey(bip44Path []uint32) (pubkey []byte, addrByte []byte, addrString string, err error) {
-	return ledger.retrieveAddressPubKey(bip44Path, false)
+func (ledger *LedgerFilecoin) GetAddressPubKey(bip44Path []uint32, curve CryptoCurve) (pubkey []byte, addrByte []byte, addrString string, err error) {
+	return ledger.retrieveAddressPubKey(bip44Path, curve, false)
 }
-
 
 // Deprecated: Use ShowAddressPubKey instead.
 func (ledger *LedgerFilecoin) ShowAddressPubKeySECP256K1(bip44Path []uint32) (pubkey []byte, addrByte []byte, addrString string, err error) {
-	return ledger.ShowAddressPubKey(bip44Path)
+	return ledger.ShowAddressPubKey(bip44Path, SECP256K1)
 }
 
-// ShowAddressPubKeySECP256K1 returns the pubkey (compressed) and addresses
+// ShowAddressPubKey returns the pubkey (compressed) and addresses
 // this command requires user confirmation in the device
-func (ledger *LedgerFilecoin) ShowAddressPubKey(bip44Path []uint32) (pubkey []byte, addrByte []byte, addrString string, err error) {
-	return ledger.retrieveAddressPubKey(bip44Path, true)
+func (ledger *LedgerFilecoin) ShowAddressPubKey(bip44Path []uint32, curve CryptoCurve) (pubkey []byte, addrByte []byte, addrString string, err error) {
+	return ledger.retrieveAddressPubKey(bip44Path, curve, true)
 }
 
 func (ledger *LedgerFilecoin) GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
@@ -219,7 +214,10 @@ func (ledger *LedgerFilecoin) GetBip44bytes(bip44Path []uint32, hardenCount int)
 	return pathBytes, nil
 }
 
-func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte) ([]byte, error) {
+func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve CryptoCurve) ([]byte, error) {
+	if err := isCryptoCurveSupported(curve); err != nil {
+		return nil, err
+	}
 
 	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
 	if err != nil {
@@ -277,7 +275,11 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte) ([]by
 }
 
 // retrieveAddressPubKey returns the pubkey and address
-func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
+func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve CryptoCurve, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
+	if err := isCryptoCurveSupported(curve); err != nil {
+		return nil, nil, "", err
+	}
+
 	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
 	if err != nil {
 		return nil, nil, "", err

@@ -22,14 +22,14 @@ import (
 )
 
 const (
-	CLA                 = 0x06
+	CLA = 0x06
 
-	INSGetVersion       = 0
-	INSGetAddr          = 1
-	INSSign             = 2
-	INSSignDataCap      = 5
-	INSSignClientDeal   = 6
-	INSSignRawBytes     = 7
+	INSGetVersion     = 0
+	INSGetAddr        = 1
+	INSSign           = 2
+	INSSignDataCap    = 5
+	INSSignClientDeal = 6
+	INSSignRawBytes   = 7
 )
 
 const (
@@ -39,6 +39,13 @@ const (
 )
 
 const HardenCount int = 2
+
+type CryptoCurve uint64
+
+const (
+	SECP256K1 CryptoCurve = iota
+	BLS
+)
 
 // LedgerFilecoin represents a connection to the Ledger app
 type LedgerFilecoin struct {
@@ -60,7 +67,6 @@ type VersionInfo struct {
 	Minor   uint8
 	Patch   uint8
 }
-
 
 // VersionRequiredError the command is not supported by this app
 type VersionRequiredError struct {
