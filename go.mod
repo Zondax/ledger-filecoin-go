@@ -6,7 +6,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/ipsn/go-secp256k1 v0.0.0-20180726113642-9d62b9f0bc52
 	github.com/stretchr/testify v1.9.0
-	github.com/zondax/ledger-go v0.15.0
+	github.com/zondax/ledger-go v1.0.0
 	golang.org/x/crypto v0.26.0
 )
 
