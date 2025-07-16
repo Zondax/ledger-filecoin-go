@@ -30,6 +30,7 @@ const (
 	INSSignDataCap    = 5
 	INSSignClientDeal = 6
 	INSSignRawBytes   = 7
+	INSSignPersonalMsg = 8
 )
 
 const (

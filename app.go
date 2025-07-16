@@ -17,6 +17,7 @@
 package ledger_filecoin_go
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	ledger_go "github.com/zondax/ledger-go"
@@ -274,6 +275,85 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve
 	return finalResponse, nil
 }
 
+// SignPersonalMessageFVM signs a personal message for FVM (Filecoin Virtual Machine)
+// this command requires user confirmation in the device
+func (ledger *LedgerFilecoin) SignPersonalMessageFVM(bip44Path []uint32, message []byte) (*SignatureAnswer, error) {
+	// Personal messages are always signed with SECP256K1
+	signatureBytes, err := ledger.signPersonalMessage(bip44Path, message)
+	if err != nil {
+		return nil, err
+	}
+
+	// R,S,V and at least 1 bytes of the der sig
+	if len(signatureBytes) < 66 {
+		return nil, fmt.Errorf("The signature provided is too short.")
+	}
+
+	signatureAnswer := SignatureAnswer{
+		signatureBytes[0:32],
+		signatureBytes[32:64],
+		signatureBytes[64],
+		signatureBytes[65:]}
+
+	return &signatureAnswer, nil
+}
+
+func (ledger *LedgerFilecoin) signPersonalMessage(bip44Path []uint32, message []byte) ([]byte, error) {
+	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepend message length as 4 bytes (big endian)
+	messageLen := uint32(len(message))
+	fullMessage := make([]byte, 4+len(message))
+	binary.BigEndian.PutUint32(fullMessage[0:4], messageLen)
+	copy(fullMessage[4:], message)
+
+	chunks, err := prepareChunks(pathBytes, fullMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	var finalResponse []byte
+	var chunkIndex int = 0
+
+	for chunkIndex < len(chunks) {
+		payloadLen := byte(len(chunks[chunkIndex]))
+
+		var header []byte
+		if chunkIndex == 0 {
+			header = []byte{CLA, INSSignPersonalMsg, PayloadChunkInit, 0, payloadLen}
+		} else {
+			payloadDesc := byte(PayloadChunkAdd)
+			if chunkIndex == (len(chunks) - 1) {
+				payloadDesc = byte(PayloadChunkLast)
+			}
+			header = []byte{CLA, INSSignPersonalMsg, payloadDesc, 0, payloadLen}
+		}
+
+		message := append(header, chunks[chunkIndex]...)
+
+		response, err := ledger.api.Exchange(message)
+		if err != nil {
+			// Handle specific error cases
+			if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
+				errorMsg := string(response)
+				return nil, fmt.Errorf(errorMsg)
+			}
+			if err.Error() == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)" {
+				errorMsg := string(response)
+				return nil, fmt.Errorf(errorMsg)
+			}
+			return nil, err
+		}
+
+		finalResponse = response
+		chunkIndex++
+	}
+	return finalResponse, nil
+}
+
 // retrieveAddressPubKey returns the pubkey and address
 func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve CryptoCurve, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	if err := isCryptoCurveSupported(curve); err != nil {
@@ -327,3 +407,5 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 
 	return pubkey, addrByte, addrString, err
 }
+
+
