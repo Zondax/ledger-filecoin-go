@@ -355,6 +355,96 @@ func (ledger *LedgerFilecoin) signPersonalMessage(bip44Path []uint32, message []
 }
 
 // retrieveAddressPubKey returns the pubkey and address
+// SignRawBytes signs raw bytes using Filecoin user app
+// this command requires user confirmation in the device
+func (ledger *LedgerFilecoin) SignRawBytes(bip44Path []uint32, message []byte) (*SignatureAnswer, error) {
+	signatureBytes, err := ledger.signRawBytes(bip44Path, message)
+	if err != nil {
+		return nil, err
+	}
+
+	// R,S,V and at least 1 bytes of the der sig
+	if len(signatureBytes) < 66 {
+		return nil, fmt.Errorf("The signature provided is too short.")
+	}
+
+	signatureAnswer := SignatureAnswer{
+		signatureBytes[0:32],
+		signatureBytes[32:64],
+		signatureBytes[64],
+		signatureBytes[65:]}
+
+	return &signatureAnswer, nil
+}
+
+func (ledger *LedgerFilecoin) signRawBytes(bip44Path []uint32, message []byte) ([]byte, error) {
+	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode message length using varint and prepend to message
+	messageLen := len(message)
+	varintLen := encodeVarint(uint64(messageLen))
+	fullMessage := make([]byte, len(varintLen)+len(message))
+	copy(fullMessage, varintLen)
+	copy(fullMessage[len(varintLen):], message)
+
+	chunks, err := prepareChunks(pathBytes, fullMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	var finalResponse []byte
+	var chunkIndex int = 0
+
+	for chunkIndex < len(chunks) {
+		payloadLen := byte(len(chunks[chunkIndex]))
+
+		var header []byte
+		if chunkIndex == 0 {
+			header = []byte{CLA, INSSignRawBytes, PayloadChunkInit, 0, payloadLen}
+		} else {
+			payloadDesc := byte(PayloadChunkAdd)
+			if chunkIndex == (len(chunks) - 1) {
+				payloadDesc = byte(PayloadChunkLast)
+			}
+			header = []byte{CLA, INSSignRawBytes, payloadDesc, 0, payloadLen}
+		}
+
+		message := append(header, chunks[chunkIndex]...)
+
+		response, err := ledger.api.Exchange(message)
+		if err != nil {
+			// Handle specific error cases
+			if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
+				errorMsg := string(response)
+				return nil, fmt.Errorf(errorMsg)
+			}
+			if err.Error() == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)" {
+				errorMsg := string(response)
+				return nil, fmt.Errorf(errorMsg)
+			}
+			return nil, err
+		}
+
+		finalResponse = response
+		chunkIndex++
+	}
+	return finalResponse, nil
+}
+
+// encodeVarint encodes a uint64 as a varint (variable length integer)
+func encodeVarint(value uint64) []byte {
+	var buf []byte
+	for value >= 0x80 {
+		buf = append(buf, byte(value)|0x80)
+		value >>= 7
+	}
+	buf = append(buf, byte(value))
+	return buf
+}
+
 func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve CryptoCurve, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	if err := isCryptoCurveSupported(curve); err != nil {
 		return nil, nil, "", err
