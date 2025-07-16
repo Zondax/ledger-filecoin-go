@@ -24,10 +24,10 @@ import (
 )
 
 func (sa *SignatureAnswer) SignatureBytes() []byte {
-	out := make([]byte, 65)
-	copy(out[:32], sa.r)
-	copy(out[32:64], sa.s)
-	out[64] = sa.v
+	out := make([]byte, signatureLength)
+	copy(out[signatureROffset:signatureROffset+signatureRLength], sa.r)
+	copy(out[signatureSOffset:signatureSOffset+signatureSLength], sa.s)
+	out[signatureVOffset] = sa.v
 	return out
 }
 
@@ -118,19 +118,19 @@ func (ledger *LedgerFilecoin) Close() error {
 
 // VersionIsSupported returns true if the App version is supported by this library
 func (ledger *LedgerFilecoin) CheckVersion(ver VersionInfo) error {
-	return CheckVersion(ver, VersionInfo{0, 0, 3, 0})
+	return CheckVersion(ver, VersionInfo{minVersionMode, minVersionMajor, minVersionMinor, minVersionPatch})
 }
 
 // GetVersion returns the current version of the Filecoin user app
 func (ledger *LedgerFilecoin) GetVersion() (*VersionInfo, error) {
-	message := []byte{CLA, INSGetVersion, 0, 0, 0}
+	message := []byte{CLA, INSGetVersion, apduP1Default, apduP2Default, 0}
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if len(response) < 4 {
+	if len(response) < minVersionResponseLength {
 		return nil, fmt.Errorf("invalid response")
 	}
 
@@ -158,15 +158,15 @@ func (ledger *LedgerFilecoin) Sign(bip44Path []uint32, transaction []byte, curve
 	}
 
 	// R,S,V and at least 1 bytes of the der sig
-	if len(signatureBytes) < 66 {
+	if len(signatureBytes) < signatureMinLength {
 		return nil, fmt.Errorf("The signature provided is too short.")
 	}
 
 	signatureAnswer := SignatureAnswer{
-		signatureBytes[0:32],
-		signatureBytes[32:64],
-		signatureBytes[64],
-		signatureBytes[65:]}
+		signatureBytes[signatureROffset:signatureROffset+signatureRLength],
+		signatureBytes[signatureSOffset:signatureSOffset+signatureSLength],
+		signatureBytes[signatureVOffset],
+		signatureBytes[signatureDEROffset:]}
 
 	return &signatureAnswer, nil
 }
@@ -240,7 +240,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve
 		payloadLen := byte(len(chunks[chunkIndex]))
 
 		if chunkIndex == 0 {
-			header := []byte{CLA, INSSign, PayloadChunkInit, 0, payloadLen}
+			header := []byte{CLA, INSSign, PayloadChunkInit, apduP2Default, payloadLen}
 			message = append(header, chunks[chunkIndex]...)
 		} else {
 
@@ -249,7 +249,7 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve
 				payloadDesc = byte(PayloadChunkLast)
 			}
 
-			header := []byte{CLA, INSSign, payloadDesc, 0, payloadLen}
+			header := []byte{CLA, INSSign, payloadDesc, apduP2Default, payloadLen}
 			message = append(header, chunks[chunkIndex]...)
 		}
 
@@ -285,15 +285,15 @@ func (ledger *LedgerFilecoin) SignPersonalMessageFVM(bip44Path []uint32, message
 	}
 
 	// R,S,V and at least 1 bytes of the der sig
-	if len(signatureBytes) < 66 {
+	if len(signatureBytes) < signatureMinLength {
 		return nil, fmt.Errorf("The signature provided is too short.")
 	}
 
 	signatureAnswer := SignatureAnswer{
-		signatureBytes[0:32],
-		signatureBytes[32:64],
-		signatureBytes[64],
-		signatureBytes[65:]}
+		signatureBytes[signatureROffset:signatureROffset+signatureRLength],
+		signatureBytes[signatureSOffset:signatureSOffset+signatureSLength],
+		signatureBytes[signatureVOffset],
+		signatureBytes[signatureDEROffset:]}
 
 	return &signatureAnswer, nil
 }
@@ -306,9 +306,9 @@ func (ledger *LedgerFilecoin) signPersonalMessage(bip44Path []uint32, message []
 
 	// Prepend message length as 4 bytes (big endian)
 	messageLen := uint32(len(message))
-	fullMessage := make([]byte, 4+len(message))
-	binary.BigEndian.PutUint32(fullMessage[0:4], messageLen)
-	copy(fullMessage[4:], message)
+	fullMessage := make([]byte, messageLengthPrefixSize+len(message))
+	binary.BigEndian.PutUint32(fullMessage[0:messageLengthPrefixSize], messageLen)
+	copy(fullMessage[messageLengthPrefixSize:], message)
 
 	chunks, err := prepareChunks(pathBytes, fullMessage)
 	if err != nil {
@@ -323,13 +323,13 @@ func (ledger *LedgerFilecoin) signPersonalMessage(bip44Path []uint32, message []
 
 		var header []byte
 		if chunkIndex == 0 {
-			header = []byte{CLA, INSSignPersonalMsg, PayloadChunkInit, 0, payloadLen}
+			header = []byte{CLA, INSSignPersonalMsg, PayloadChunkInit, apduP2Default, payloadLen}
 		} else {
 			payloadDesc := byte(PayloadChunkAdd)
 			if chunkIndex == (len(chunks) - 1) {
 				payloadDesc = byte(PayloadChunkLast)
 			}
-			header = []byte{CLA, INSSignPersonalMsg, payloadDesc, 0, payloadLen}
+			header = []byte{CLA, INSSignPersonalMsg, payloadDesc, apduP2Default, payloadLen}
 		}
 
 		message := append(header, chunks[chunkIndex]...)
@@ -364,15 +364,15 @@ func (ledger *LedgerFilecoin) SignRawBytes(bip44Path []uint32, message []byte) (
 	}
 
 	// R,S,V and at least 1 bytes of the der sig
-	if len(signatureBytes) < 66 {
+	if len(signatureBytes) < signatureMinLength {
 		return nil, fmt.Errorf("The signature provided is too short.")
 	}
 
 	signatureAnswer := SignatureAnswer{
-		signatureBytes[0:32],
-		signatureBytes[32:64],
-		signatureBytes[64],
-		signatureBytes[65:]}
+		signatureBytes[signatureROffset:signatureROffset+signatureRLength],
+		signatureBytes[signatureSOffset:signatureSOffset+signatureSLength],
+		signatureBytes[signatureVOffset],
+		signatureBytes[signatureDEROffset:]}
 
 	return &signatureAnswer, nil
 }
@@ -403,13 +403,13 @@ func (ledger *LedgerFilecoin) signRawBytes(bip44Path []uint32, message []byte) (
 
 		var header []byte
 		if chunkIndex == 0 {
-			header = []byte{CLA, INSSignRawBytes, PayloadChunkInit, 0, payloadLen}
+			header = []byte{CLA, INSSignRawBytes, PayloadChunkInit, apduP2Default, payloadLen}
 		} else {
 			payloadDesc := byte(PayloadChunkAdd)
 			if chunkIndex == (len(chunks) - 1) {
 				payloadDesc = byte(PayloadChunkLast)
 			}
-			header = []byte{CLA, INSSignRawBytes, payloadDesc, 0, payloadLen}
+			header = []byte{CLA, INSSignRawBytes, payloadDesc, apduP2Default, payloadLen}
 		}
 
 		message := append(header, chunks[chunkIndex]...)
@@ -436,13 +436,9 @@ func (ledger *LedgerFilecoin) signRawBytes(bip44Path []uint32, message []byte) (
 
 // encodeVarint encodes a uint64 as a varint (variable length integer)
 func encodeVarint(value uint64) []byte {
-	var buf []byte
-	for value >= 0x80 {
-		buf = append(buf, byte(value)|0x80)
-		value >>= 7
-	}
-	buf = append(buf, byte(value))
-	return buf
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutUvarint(buf, value)
+	return buf[:n]
 }
 
 func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve CryptoCurve, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
@@ -455,22 +451,22 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 		return nil, nil, "", err
 	}
 
-	p1 := byte(0)
+	p1 := byte(apduP1Default)
 	if requireConfirmation {
-		p1 = byte(1)
+		p1 = byte(apduP1Confirm)
 	}
 
 	// Prepare message
-	header := []byte{CLA, INSGetAddr, p1, 0, 0}
+	header := []byte{CLA, INSGetAddr, p1, apduP2Default, 0}
 	message := append(header, pathBytes...)
-	message[4] = byte(len(message) - len(header)) // update length
+	message[apduDataLenOffset] = byte(len(message) - len(header)) // update length
 
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
 		return nil, nil, "", err
 	}
-	if len(response) < 39 {
+	if len(response) < minAddressResponseLength {
 		return nil, nil, "", fmt.Errorf("Invalid response")
 	}
 
@@ -482,7 +478,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 
 	// Read addr byte format length
 	addrByteLength := int(response[cursor])
-	cursor = cursor + 1
+	cursor = cursor + lengthByteSize
 
 	// Read addr byte format
 	addrByte = response[cursor : cursor+addrByteLength]
@@ -490,7 +486,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 
 	// Read addr strin format length
 	addrStringLength := int(response[cursor])
-	cursor = cursor + 1
+	cursor = cursor + lengthByteSize
 
 	// Read addr string format
 	addrString = string(response[cursor : cursor+addrStringLength])
