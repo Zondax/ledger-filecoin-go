@@ -284,12 +284,12 @@ func (ledger *LedgerFilecoin) signRawBytes(bip44Path []uint32, message []byte) (
 
 func parseSignatureResponse(signatureBytes []byte) (*SignatureAnswer, error) {
 	if len(signatureBytes) < signatureMinLength {
-		return nil, fmt.Errorf("signature too short")
+		return nil, fmt.Errorf("signature too short: expected at least %d bytes, got %d", signatureMinLength, len(signatureBytes))
 	}
 
 	return &SignatureAnswer{
-		r:            signatureBytes[signatureROffset:signatureROffset+signatureRLength],
-		s:            signatureBytes[signatureSOffset:signatureSOffset+signatureSLength],
+		r:            signatureBytes[signatureROffset : signatureROffset+signatureRLength],
+		s:            signatureBytes[signatureSOffset : signatureSOffset+signatureSLength],
 		v:            signatureBytes[signatureVOffset],
 		derSignature: signatureBytes[signatureDEROffset:],
 	}, nil
@@ -301,7 +301,7 @@ func (ledger *LedgerFilecoin) processChunks(chunks [][]byte, instruction byte) (
 	for chunkIndex, chunk := range chunks {
 		payloadLen := byte(len(chunk))
 		payloadDesc := PayloadChunkAdd
-		
+
 		if chunkIndex == 0 {
 			payloadDesc = PayloadChunkInit
 		} else if chunkIndex == len(chunks)-1 {
@@ -392,5 +392,3 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 
 	return pubkey, addrByte, addrString, err
 }
-
-

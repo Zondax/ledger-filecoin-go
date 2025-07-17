@@ -25,42 +25,42 @@ import (
 const (
 	userMessageChunkSize = 250
 	publicKeyLength      = 65
-	
+
 	// Signature-related constants
-	signatureLength         = 65
-	signatureROffset        = 0
-	signatureRLength        = 32
-	signatureSOffset        = 32
-	signatureSLength        = 32
-	signatureVOffset        = 64
-	signatureMinLength      = 66 // R(32) + S(32) + V(1) + DER(1+)
-	signatureDEROffset      = 65
-	
+	signatureLength    = 65
+	signatureROffset   = 0
+	signatureRLength   = 32
+	signatureSOffset   = 32
+	signatureSLength   = 32
+	signatureVOffset   = 64
+	signatureMinLength = 66 // R(32) + S(32) + V(1) + DER(1+)
+	signatureDEROffset = 65
+
 	// Version check constants
 	minVersionMajor = 0
 	minVersionMinor = 0
 	minVersionPatch = 3
 	minVersionMode  = 0
-	
+
 	// Response length constants
 	minVersionResponseLength = 4
 	minAddressResponseLength = 39
-	
+
 	// Message construction constants
 	messageLengthPrefixSize = 4
 	lengthByteSize          = 1
-	
+
 	// BIP44 path constants
-	bip44PathElements = 5
-	bip44BytesLength  = 20
+	bip44PathElements    = 5
+	bip44BytesLength     = 20
 	bip44BytesPerElement = 4
-	hardenBit         = 0x80000000
-	
+	hardenBit            = 0x80000000
+
 	// APDU message constants
-	apduP1Default      = 0
-	apduP2Default      = 0
-	apduDataLenOffset  = 4
-	apduP1Confirm      = 1
+	apduP1Default     = 0
+	apduP2Default     = 0
+	apduDataLenOffset = 4
+	apduP1Confirm     = 1
 )
 
 func (c VersionInfo) String() string {
