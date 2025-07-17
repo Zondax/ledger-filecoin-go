@@ -17,16 +17,17 @@
 package ledger_filecoin_go
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	ledger_go "github.com/zondax/ledger-go"
 )
 
 func (sa *SignatureAnswer) SignatureBytes() []byte {
-	out := make([]byte, 65)
-	copy(out[:32], sa.r)
-	copy(out[32:64], sa.s)
-	out[64] = sa.v
+	out := make([]byte, signatureLength)
+	copy(out[signatureROffset:signatureROffset+signatureRLength], sa.r)
+	copy(out[signatureSOffset:signatureSOffset+signatureSLength], sa.s)
+	out[signatureVOffset] = sa.v
 	return out
 }
 
@@ -96,7 +97,7 @@ func FindLedgerFilecoinApp() (*LedgerFilecoin, error) {
 	if err != nil {
 		defer ledgerAPI.Close()
 		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] Class not supported" {
-			return nil, fmt.Errorf("are you sure the Filecoin app is open?")
+			return nil, fmt.Errorf("Filecoin app is not open on the device")
 		}
 		return nil, err
 	}
@@ -117,20 +118,20 @@ func (ledger *LedgerFilecoin) Close() error {
 
 // VersionIsSupported returns true if the App version is supported by this library
 func (ledger *LedgerFilecoin) CheckVersion(ver VersionInfo) error {
-	return CheckVersion(ver, VersionInfo{0, 0, 3, 0})
+	return CheckVersion(ver, VersionInfo{minVersionMode, minVersionMajor, minVersionMinor, minVersionPatch})
 }
 
 // GetVersion returns the current version of the Filecoin user app
 func (ledger *LedgerFilecoin) GetVersion() (*VersionInfo, error) {
-	message := []byte{CLA, INSGetVersion, 0, 0, 0}
+	message := []byte{CLA, INSGetVersion, apduP1Default, apduP2Default, 0}
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if len(response) < 4 {
-		return nil, fmt.Errorf("invalid response")
+	if len(response) < minVersionResponseLength {
+		return nil, fmt.Errorf("invalid version response length: expected %d, got %d", minVersionResponseLength, len(response))
 	}
 
 	ledger.version = VersionInfo{
@@ -156,18 +157,7 @@ func (ledger *LedgerFilecoin) Sign(bip44Path []uint32, transaction []byte, curve
 		return nil, err
 	}
 
-	// R,S,V and at least 1 bytes of the der sig
-	if len(signatureBytes) < 66 {
-		return nil, fmt.Errorf("The signature provided is too short.")
-	}
-
-	signatureAnswer := SignatureAnswer{
-		signatureBytes[0:32],
-		signatureBytes[32:64],
-		signatureBytes[64],
-		signatureBytes[65:]}
-
-	return &signatureAnswer, nil
+	return parseSignatureResponse(signatureBytes)
 }
 
 // Deprecated: Use GetPublicKey instead.
@@ -206,12 +196,7 @@ func (ledger *LedgerFilecoin) ShowAddressPubKey(bip44Path []uint32, curve Crypto
 }
 
 func (ledger *LedgerFilecoin) GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
-	pathBytes, err := GetBip44bytes(bip44Path, hardenCount)
-	if err != nil {
-		return nil, err
-	}
-
-	return pathBytes, nil
+	return GetBip44bytes(bip44Path, hardenCount)
 }
 
 func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve CryptoCurve) ([]byte, error) {
@@ -229,52 +214,132 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve
 		return nil, err
 	}
 
-	var finalResponse []byte
+	return ledger.processChunks(chunks, INSSign)
+}
 
-	var message []byte
-
-	var chunkIndex int = 0
-
-	for chunkIndex < len(chunks) {
-		payloadLen := byte(len(chunks[chunkIndex]))
-
-		if chunkIndex == 0 {
-			header := []byte{CLA, INSSign, PayloadChunkInit, 0, payloadLen}
-			message = append(header, chunks[chunkIndex]...)
-		} else {
-
-			payloadDesc := byte(PayloadChunkAdd)
-			if chunkIndex == (len(chunks) - 1) {
-				payloadDesc = byte(PayloadChunkLast)
-			}
-
-			header := []byte{CLA, INSSign, payloadDesc, 0, payloadLen}
-			message = append(header, chunks[chunkIndex]...)
-		}
-
-		response, err := ledger.api.Exchange(message)
-		if err != nil {
-			// FIXME: CBOR will be used instead
-			if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
-				// In this special case, we can extract additional info
-				errorMsg := string(response)
-				return nil, fmt.Errorf(errorMsg)
-			}
-			if err.Error() == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)" {
-				errorMsg := string(response)
-				return nil, fmt.Errorf(errorMsg)
-			}
-			return nil, err
-		}
-
-		finalResponse = response
-		chunkIndex++
-
+// SignPersonalMessageFVM signs a personal message for FVM (Filecoin Virtual Machine)
+// this command requires user confirmation in the device
+func (ledger *LedgerFilecoin) SignPersonalMessageFVM(bip44Path []uint32, message []byte) (*SignatureAnswer, error) {
+	// Personal messages are always signed with SECP256K1
+	signatureBytes, err := ledger.signPersonalMessage(bip44Path, message)
+	if err != nil {
+		return nil, err
 	}
-	return finalResponse, nil
+
+	return parseSignatureResponse(signatureBytes)
+}
+
+func (ledger *LedgerFilecoin) signPersonalMessage(bip44Path []uint32, message []byte) ([]byte, error) {
+	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepend message length as 4 bytes (big endian)
+	messageLen := uint32(len(message))
+	fullMessage := make([]byte, messageLengthPrefixSize+len(message))
+	binary.BigEndian.PutUint32(fullMessage[0:messageLengthPrefixSize], messageLen)
+	copy(fullMessage[messageLengthPrefixSize:], message)
+
+	chunks, err := prepareChunks(pathBytes, fullMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	return ledger.processChunks(chunks, INSSignPersonalMsg)
 }
 
 // retrieveAddressPubKey returns the pubkey and address
+// SignRawBytes signs raw bytes using Filecoin user app
+// this command requires user confirmation in the device
+func (ledger *LedgerFilecoin) SignRawBytes(bip44Path []uint32, message []byte) (*SignatureAnswer, error) {
+	signatureBytes, err := ledger.signRawBytes(bip44Path, message)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseSignatureResponse(signatureBytes)
+}
+
+func (ledger *LedgerFilecoin) signRawBytes(bip44Path []uint32, message []byte) ([]byte, error) {
+	pathBytes, err := ledger.GetBip44bytes(bip44Path, HardenCount)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode message length using varint and prepend to message
+	messageLen := len(message)
+	varintLen := encodeVarint(uint64(messageLen))
+	fullMessage := make([]byte, len(varintLen)+len(message))
+	copy(fullMessage, varintLen)
+	copy(fullMessage[len(varintLen):], message)
+
+	chunks, err := prepareChunks(pathBytes, fullMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	return ledger.processChunks(chunks, INSSignRawBytes)
+}
+
+func parseSignatureResponse(signatureBytes []byte) (*SignatureAnswer, error) {
+	if len(signatureBytes) < signatureMinLength {
+		return nil, fmt.Errorf("signature too short: expected at least %d bytes, got %d", signatureMinLength, len(signatureBytes))
+	}
+
+	return &SignatureAnswer{
+		r:            signatureBytes[signatureROffset : signatureROffset+signatureRLength],
+		s:            signatureBytes[signatureSOffset : signatureSOffset+signatureSLength],
+		v:            signatureBytes[signatureVOffset],
+		derSignature: signatureBytes[signatureDEROffset:],
+	}, nil
+}
+
+func (ledger *LedgerFilecoin) processChunks(chunks [][]byte, instruction byte) ([]byte, error) {
+	var finalResponse []byte
+
+	for chunkIndex, chunk := range chunks {
+		payloadLen := byte(len(chunk))
+		payloadDesc := PayloadChunkAdd
+
+		if chunkIndex == 0 {
+			payloadDesc = PayloadChunkInit
+		} else if chunkIndex == len(chunks)-1 {
+			payloadDesc = PayloadChunkLast
+		}
+
+		header := []byte{CLA, instruction, byte(payloadDesc), apduP2Default, payloadLen}
+		message := append(header, chunk...)
+
+		response, err := ledger.api.Exchange(message)
+		if err != nil {
+			return nil, handleExchangeError(err, response)
+		}
+
+		finalResponse = response
+	}
+
+	return finalResponse, nil
+}
+
+func handleExchangeError(err error, response []byte) error {
+	errorMsg := err.Error()
+	switch {
+	case errorMsg == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect":
+		return fmt.Errorf(string(response))
+	case errorMsg == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)":
+		return fmt.Errorf(string(response))
+	default:
+		return err
+	}
+}
+
+func encodeVarint(value uint64) []byte {
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutUvarint(buf, value)
+	return buf[:n]
+}
+
 func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve CryptoCurve, requireConfirmation bool) (pubkey []byte, addrByte []byte, addrString string, err error) {
 	if err := isCryptoCurveSupported(curve); err != nil {
 		return nil, nil, "", err
@@ -285,23 +350,23 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 		return nil, nil, "", err
 	}
 
-	p1 := byte(0)
+	p1 := byte(apduP1Default)
 	if requireConfirmation {
-		p1 = byte(1)
+		p1 = byte(apduP1Confirm)
 	}
 
 	// Prepare message
-	header := []byte{CLA, INSGetAddr, p1, 0, 0}
+	header := []byte{CLA, INSGetAddr, p1, apduP2Default, 0}
 	message := append(header, pathBytes...)
-	message[4] = byte(len(message) - len(header)) // update length
+	message[apduDataLenOffset] = byte(len(message) - len(header)) // update length
 
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
 		return nil, nil, "", err
 	}
-	if len(response) < 39 {
-		return nil, nil, "", fmt.Errorf("Invalid response")
+	if len(response) < minAddressResponseLength {
+		return nil, nil, "", fmt.Errorf("invalid address response length: expected %d, got %d", minAddressResponseLength, len(response))
 	}
 
 	cursor := 0
@@ -312,7 +377,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 
 	// Read addr byte format length
 	addrByteLength := int(response[cursor])
-	cursor = cursor + 1
+	cursor = cursor + lengthByteSize
 
 	// Read addr byte format
 	addrByte = response[cursor : cursor+addrByteLength]
@@ -320,7 +385,7 @@ func (ledger *LedgerFilecoin) retrieveAddressPubKey(bip44Path []uint32, curve Cr
 
 	// Read addr strin format length
 	addrStringLength := int(response[cursor])
-	cursor = cursor + 1
+	cursor = cursor + lengthByteSize
 
 	// Read addr string format
 	addrString = string(response[cursor : cursor+addrStringLength])

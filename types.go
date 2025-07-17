@@ -24,12 +24,13 @@ import (
 const (
 	CLA = 0x06
 
-	INSGetVersion     = 0
-	INSGetAddr        = 1
-	INSSign           = 2
-	INSSignDataCap    = 5
-	INSSignClientDeal = 6
-	INSSignRawBytes   = 7
+	INSGetVersion      = 0
+	INSGetAddr         = 1
+	INSSign            = 2
+	INSSignDataCap     = 5
+	INSSignClientDeal  = 6
+	INSSignRawBytes    = 7
+	INSSignPersonalMsg = 8
 )
 
 const (

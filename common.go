@@ -25,6 +25,42 @@ import (
 const (
 	userMessageChunkSize = 250
 	publicKeyLength      = 65
+
+	// Signature-related constants
+	signatureLength    = 65
+	signatureROffset   = 0
+	signatureRLength   = 32
+	signatureSOffset   = 32
+	signatureSLength   = 32
+	signatureVOffset   = 64
+	signatureMinLength = 66 // R(32) + S(32) + V(1) + DER(1+)
+	signatureDEROffset = 65
+
+	// Version check constants
+	minVersionMajor = 0
+	minVersionMinor = 0
+	minVersionPatch = 3
+	minVersionMode  = 0
+
+	// Response length constants
+	minVersionResponseLength = 4
+	minAddressResponseLength = 39
+
+	// Message construction constants
+	messageLengthPrefixSize = 4
+	lengthByteSize          = 1
+
+	// BIP44 path constants
+	bip44PathElements    = 5
+	bip44BytesLength     = 20
+	bip44BytesPerElement = 4
+	hardenBit            = 0x80000000
+
+	// APDU message constants
+	apduP1Default     = 0
+	apduP2Default     = 0
+	apduDataLenOffset = 4
+	apduP1Confirm     = 1
 )
 
 func (c VersionInfo) String() string {
@@ -65,15 +101,15 @@ func CheckVersion(ver VersionInfo, req VersionInfo) error {
 }
 
 func GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
-	message := make([]byte, 20)
-	if len(bip44Path) != 5 {
-		return nil, fmt.Errorf("path should contain 5 elements")
+	message := make([]byte, bip44BytesLength)
+	if len(bip44Path) != bip44PathElements {
+		return nil, fmt.Errorf("path should contain %d elements", bip44PathElements)
 	}
 	for index, element := range bip44Path {
-		pos := index * 4
+		pos := index * bip44BytesPerElement
 		value := element
 		if index < hardenCount {
-			value = 0x80000000 | element
+			value = hardenBit | element
 		}
 		binary.LittleEndian.PutUint32(message[pos:], value)
 	}
@@ -93,7 +129,7 @@ func prepareChunks(bip44PathBytes []byte, transaction []byte) ([][]byte, error) 
 
 	for packetIndex < packetCount {
 		var start = (packetIndex - 1) * userMessageChunkSize
-		var end = (packetIndex * userMessageChunkSize) - 1
+		var end = packetIndex * userMessageChunkSize
 
 		if end >= len(transaction) {
 			chunks[packetIndex] = transaction[start:]
