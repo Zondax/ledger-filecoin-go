@@ -17,7 +17,6 @@
 package ledger_filecoin_go
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -449,13 +448,12 @@ func Test_SignPersonalMessageFVM(t *testing.T) {
 	// EIP191_FVM_PREFIX = "\x19Filecoin Signed Message:\n"
 	eip191FVMPrefix := []byte("\x19Filecoin Signed Message:\n")
 
-	// Create message length buffer (4 bytes, big endian)
-	messageLen := uint32(len(personalMessage))
-	messageLengthBuffer := make([]byte, 4)
-	binary.BigEndian.PutUint32(messageLengthBuffer, messageLen)
+	// Create message length as UTF-8 string (not 4-byte big endian)
+	messageLengthString := fmt.Sprintf("%d", len(personalMessage))
+	messageLengthBuffer := []byte(messageLengthString)
 
-	// Construct EIP-191 message: prefix + length + message
-	eip191Message := make([]byte, 0, len(eip191FVMPrefix)+4+len(personalMessage))
+	// Construct EIP-191 message: prefix + length (as string) + message
+	eip191Message := make([]byte, 0, len(eip191FVMPrefix)+len(messageLengthBuffer)+len(personalMessage))
 	eip191Message = append(eip191Message, eip191FVMPrefix...)
 	eip191Message = append(eip191Message, messageLengthBuffer...)
 	eip191Message = append(eip191Message, personalMessage...)
@@ -532,13 +530,12 @@ func Test_SignPersonalMessageFVM_LongMessage(t *testing.T) {
 	// EIP191_FVM_PREFIX = "\x19Filecoin Signed Message:\n"
 	eip191FVMPrefix := []byte("\x19Filecoin Signed Message:\n")
 
-	// Create message length buffer (4 bytes, big endian)
-	messageLen := uint32(len(longMessage))
-	messageLengthBuffer := make([]byte, 4)
-	binary.BigEndian.PutUint32(messageLengthBuffer, messageLen)
+	// Create message length as UTF-8 string (not 4-byte big endian)
+	messageLengthString := fmt.Sprintf("%d", len(longMessage))
+	messageLengthBuffer := []byte(messageLengthString)
 
-	// Construct EIP-191 message: prefix + length + message
-	eip191Message := make([]byte, 0, len(eip191FVMPrefix)+4+len(longMessage))
+	// Construct EIP-191 message: prefix + length (as string) + message
+	eip191Message := make([]byte, 0, len(eip191FVMPrefix)+len(messageLengthBuffer)+len(longMessage))
 	eip191Message = append(eip191Message, eip191FVMPrefix...)
 	eip191Message = append(eip191Message, messageLengthBuffer...)
 	eip191Message = append(eip191Message, longMessage...)

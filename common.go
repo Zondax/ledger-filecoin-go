@@ -19,12 +19,10 @@ package ledger_filecoin_go
 import (
 	"encoding/binary"
 	"fmt"
-	"math"
 )
 
 const (
-	userMessageChunkSize = 250
-	publicKeyLength      = 65
+	publicKeyLength = 65
 
 	// Signature-related constants
 	signatureLength    = 65
@@ -114,30 +112,4 @@ func GetBip44bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
 		binary.LittleEndian.PutUint32(message[pos:], value)
 	}
 	return message, nil
-}
-
-func prepareChunks(bip44PathBytes []byte, transaction []byte) ([][]byte, error) {
-	var packetIndex = 0
-	// first chunk + number of chunk needed for transaction
-	var packetCount = 1 + int(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
-
-	chunks := make([][]byte, packetCount)
-
-	// First chunk is path
-	chunks[0] = bip44PathBytes
-	packetIndex++
-
-	for packetIndex < packetCount {
-		var start = (packetIndex - 1) * userMessageChunkSize
-		var end = packetIndex * userMessageChunkSize
-
-		if end >= len(transaction) {
-			chunks[packetIndex] = transaction[start:]
-		} else {
-			chunks[packetIndex] = transaction[start:end]
-		}
-		packetIndex++
-	}
-
-	return chunks, nil
 }

@@ -209,12 +209,9 @@ func (ledger *LedgerFilecoin) sign(bip44Path []uint32, transaction []byte, curve
 		return nil, err
 	}
 
-	chunks, err := prepareChunks(pathBytes, transaction)
-	if err != nil {
-		return nil, err
-	}
+	chunks := ledger_go.PrepareChunks(pathBytes, transaction)
 
-	return ledger.processChunks(chunks, INSSign)
+	return ledger_go.ProcessChunks(ledger.api, chunks, CLA, INSSign, apduP2Default, handleExchangeError)
 }
 
 // SignPersonalMessageFVM signs a personal message for FVM (Filecoin Virtual Machine)
@@ -241,12 +238,9 @@ func (ledger *LedgerFilecoin) signPersonalMessage(bip44Path []uint32, message []
 	binary.BigEndian.PutUint32(fullMessage[0:messageLengthPrefixSize], messageLen)
 	copy(fullMessage[messageLengthPrefixSize:], message)
 
-	chunks, err := prepareChunks(pathBytes, fullMessage)
-	if err != nil {
-		return nil, err
-	}
+	chunks := ledger_go.PrepareChunks(pathBytes, fullMessage)
 
-	return ledger.processChunks(chunks, INSSignPersonalMsg)
+	return ledger_go.ProcessChunks(ledger.api, chunks, CLA, INSSignPersonalMsg, apduP2Default, handleExchangeError)
 }
 
 // retrieveAddressPubKey returns the pubkey and address
@@ -274,12 +268,9 @@ func (ledger *LedgerFilecoin) signRawBytes(bip44Path []uint32, message []byte) (
 	copy(fullMessage, varintLen)
 	copy(fullMessage[len(varintLen):], message)
 
-	chunks, err := prepareChunks(pathBytes, fullMessage)
-	if err != nil {
-		return nil, err
-	}
+	chunks := ledger_go.PrepareChunks(pathBytes, fullMessage)
 
-	return ledger.processChunks(chunks, INSSignRawBytes)
+	return ledger_go.ProcessChunks(ledger.api, chunks, CLA, INSSignRawBytes, apduP2Default, handleExchangeError)
 }
 
 func parseSignatureResponse(signatureBytes []byte) (*SignatureAnswer, error) {
@@ -295,34 +286,7 @@ func parseSignatureResponse(signatureBytes []byte) (*SignatureAnswer, error) {
 	}, nil
 }
 
-func (ledger *LedgerFilecoin) processChunks(chunks [][]byte, instruction byte) ([]byte, error) {
-	var finalResponse []byte
-
-	for chunkIndex, chunk := range chunks {
-		payloadLen := byte(len(chunk))
-		payloadDesc := PayloadChunkAdd
-
-		if chunkIndex == 0 {
-			payloadDesc = PayloadChunkInit
-		} else if chunkIndex == len(chunks)-1 {
-			payloadDesc = PayloadChunkLast
-		}
-
-		header := []byte{CLA, instruction, byte(payloadDesc), apduP2Default, payloadLen}
-		message := append(header, chunk...)
-
-		response, err := ledger.api.Exchange(message)
-		if err != nil {
-			return nil, handleExchangeError(err, response)
-		}
-
-		finalResponse = response
-	}
-
-	return finalResponse, nil
-}
-
-func handleExchangeError(err error, response []byte) error {
+func handleExchangeError(err error, response []byte, instruction byte) error {
 	errorMsg := err.Error()
 	switch {
 	case errorMsg == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect":
