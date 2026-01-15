@@ -290,9 +290,9 @@ func handleExchangeError(err error, response []byte, instruction byte) error {
 	errorMsg := err.Error()
 	switch {
 	case errorMsg == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect":
-		return fmt.Errorf(string(response))
+		return fmt.Errorf("%s", string(response))
 	case errorMsg == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)":
-		return fmt.Errorf(string(response))
+		return fmt.Errorf("%s", string(response))
 	default:
 		return err
 	}

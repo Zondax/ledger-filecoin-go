@@ -33,7 +33,7 @@ import (
 func Test_FindLedger(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 
 	assert.NotNil(t, app)
@@ -43,7 +43,7 @@ func Test_FindLedger(t *testing.T) {
 func Test_UserGetVersion(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -60,7 +60,7 @@ func Test_UserGetVersion(t *testing.T) {
 func Test_UserGetPublicKey(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -84,7 +84,7 @@ func Test_UserGetPublicKey(t *testing.T) {
 func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -110,7 +110,7 @@ func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -136,7 +136,7 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -162,7 +162,7 @@ func Test_ShowAddressPubKeySECP256K1(t *testing.T) {
 func Test_UserPK_HDPaths(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -206,7 +206,7 @@ func Test_UserPK_HDPaths(t *testing.T) {
 func Test_Sign(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -227,13 +227,13 @@ func Test_Sign(t *testing.T) {
 
 	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
-		t.Fatalf("[ParsePK] Error: " + err.Error())
+		t.Fatalf("[ParsePK] Error: %s", err.Error())
 		return
 	}
 
 	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
-		t.Fatalf("[ParseSig] Error: " + err.Error())
+		t.Fatalf("[ParseSig] Error: %s", err.Error())
 		return
 	}
 
@@ -253,7 +253,7 @@ func Test_Sign(t *testing.T) {
 func Test_Sign2(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -274,13 +274,13 @@ func Test_Sign2(t *testing.T) {
 
 	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
-		t.Fatalf("[ParsePK] Error: " + err.Error())
+		t.Fatalf("[ParsePK] Error: %s", err.Error())
 		return
 	}
 
 	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
-		t.Fatalf("[ParseSig] Error: " + err.Error())
+		t.Fatalf("[ParseSig] Error: %s", err.Error())
 		return
 	}
 
@@ -302,7 +302,7 @@ func Test_Sign2(t *testing.T) {
 func Test_Sign3(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -323,13 +323,13 @@ func Test_Sign3(t *testing.T) {
 
 	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
-		t.Fatalf("[ParsePK] Error: " + err.Error())
+		t.Fatalf("[ParsePK] Error: %s", err.Error())
 		return
 	}
 
 	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
-		t.Fatalf("[ParseSig] Error: " + err.Error())
+		t.Fatalf("[ParseSig] Error: %s", err.Error())
 		return
 	}
 
@@ -365,7 +365,7 @@ func Test_Sign_RecoveryID(t *testing.T) {
 func Test_Sign_Fails(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -396,7 +396,7 @@ func Test_Sign_Fails(t *testing.T) {
 func Test_SignPersonalMessageFVM(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -433,14 +433,14 @@ func Test_SignPersonalMessageFVM(t *testing.T) {
 	// Parse public key
 	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
-		t.Fatalf("[ParsePK] Error: " + err.Error())
+		t.Fatalf("[ParsePK] Error: %s", err.Error())
 		return
 	}
 
 	// Parse DER signature
 	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
-		t.Fatalf("[ParseSig] Error: " + err.Error())
+		t.Fatalf("[ParseSig] Error: %s", err.Error())
 		return
 	}
 
@@ -478,7 +478,7 @@ func Test_SignPersonalMessageFVM(t *testing.T) {
 func Test_SignPersonalMessageFVM_LongMessage(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
@@ -515,14 +515,14 @@ func Test_SignPersonalMessageFVM_LongMessage(t *testing.T) {
 	// Parse public key
 	pub2, err := btcec.ParsePubKey(pubKey)
 	if err != nil {
-		t.Fatalf("[ParsePK] Error: " + err.Error())
+		t.Fatalf("[ParsePK] Error: %s", err.Error())
 		return
 	}
 
 	// Parse DER signature
 	sig2, err := ecdsa.ParseDERSignature(signature.derSignature)
 	if err != nil {
-		t.Fatalf("[ParseSig] Error: " + err.Error())
+		t.Fatalf("[ParseSig] Error: %s", err.Error())
 		return
 	}
 
@@ -560,7 +560,7 @@ func Test_SignPersonalMessageFVM_LongMessage(t *testing.T) {
 func Test_SignRawBytes(t *testing.T) {
 	app, err := FindLedgerFilecoinApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer app.Close()
 
